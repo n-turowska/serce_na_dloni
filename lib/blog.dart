@@ -112,6 +112,33 @@ class _BlogState extends State<Blog> {
                 FutureBuilder<String>(
                   future: wczytajTekst(wpis.sciezka),
                   builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+
+                      // co się wyświetla podczas ładowania pliku
+
+                      return const Padding(
+
+                        padding: EdgeInsets.all(16.0),
+
+                        child: CircularProgressIndicator(),
+
+                      );
+
+                    }
+
+
+
+                    if (snapshot.hasError) {
+
+                      return const Padding(
+
+                        padding: EdgeInsets.all(16.0),
+
+                        child: Text("Błąd podczas wczytywania artykułu."),
+
+                      );
+
+                    }
 
                     return Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),

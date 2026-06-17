@@ -18,8 +18,48 @@ class _KontoState extends State<Konto> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: Text("To twoje konto"),
 
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+
+          children: [
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Twoje Dane",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ), 
+                    ), 
+
+                    SizedBox(height: 12),
+                    Divider(), // pozioma kreska oddzielająca
+                    SizedBox(height: 12),
+                    Text("Imię: Jan", style: TextStyle(fontSize: 16)),
+                    SizedBox(height: 8),
+                    Text("Nazwisko: Kowalski", style: TextStyle(fontSize: 16)),
+                    SizedBox(height: 8),
+                    Text("Wiek: 45 lat", style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+             ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
