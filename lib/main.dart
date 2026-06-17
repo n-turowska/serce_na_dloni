@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'blog.dart';
 import 'startowy.dart';
+import 'pomiary.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,6 +21,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/startowy': (context) => const MyHomePage(title: 'Ekran Startowy'),
         '/blog': (context) => const Blog(),
+        '/pomiary': (context) => const Pomiary(),
       }
     );
   }

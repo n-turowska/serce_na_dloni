@@ -30,9 +30,11 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text('Witaj w sercce na dłoni'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            ElevatedButton(
+              onPressed: () {
+                          Navigator.pushNamed(context, '/pomiary');
+                        }, 
+              child: Text("Pomiary")
             ),
           ],
         ),
