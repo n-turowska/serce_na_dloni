@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 
+class Artykul {
+  final String tytul;
+  final String opis;
+  final String tekst;
+
+  Artykul({
+    required this.tytul,
+    required this.opis,
+    required this.tekst,
+  });
+}
+
 class Blog extends StatefulWidget{
   
     const Blog({super.key});
@@ -9,16 +21,17 @@ class Blog extends StatefulWidget{
 }
 
 class _BlogState extends State<Blog> {
-  final List<Map<String, String>> wpisy = [
-    {//tak wygląda przykładowy wpis
-    "tytuł": "Tytuł wpisu",
-    "tekst": "Treść wpisu",
-    },
-
-    {
-    "tytuł": "Tytuł wpisu",
-    "tekst": "Treść wpisu",
-    }
+  final List<Artykul> wpisy = [
+    Artykul(
+      tytul: "Tytuł",
+      opis: " Opis",
+      tekst: "Treść artykułu",
+    ),
+    Artykul(
+      tytul: "Tytuł",
+      opis: " Opis",
+      tekst: "Treść artykułu",
+    ),
   ];
 
   @override
@@ -29,6 +42,7 @@ class _BlogState extends State<Blog> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
+
       body: ListView.builder(
         padding: const EdgeInsets.all(12.0), //odstęp od krawędzi ekranu
         itemCount: wpisy.length,
@@ -42,8 +56,9 @@ class _BlogState extends State<Blog> {
               borderRadius: BorderRadius.circular(12), // Zaokrąglone rogi kafelka
             ),
 
-            child:ListTile(
-              contentPadding: const EdgeInsets.all(16.0),
+            child:ExpansionTile(
+              shape:const Border(),
+              collapsedShape: const Border(),
 
               leading: CircleAvatar(
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -57,7 +72,7 @@ class _BlogState extends State<Blog> {
               ),
 
               title: Text(
-                wpis["tytuł"] ?? "Brak tytułu", 
+                wpis.tytul, 
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
@@ -67,16 +82,23 @@ class _BlogState extends State<Blog> {
               subtitle: Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: Text(
-                  wpis["tekst"] ?? "Brak opisu", 
+                  wpis.opis, 
                   style: TextStyle(color: Colors.grey[700]),
                 ), // Text
               ),
 
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                // Tutaj też bezpiecznie bez wykrzyknika
-                print("Kliknięto artykuł: ${wpis['tytul'] ?? 'Nieznany'}");
-              },
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                  child: Text(
+                    wpis.tekst,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
