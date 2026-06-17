@@ -72,9 +72,9 @@ class _BlogState extends State<Blog> {
 
           return Card(
             elevation: 3,
-            margin: const EdgeInsets.symmetric(vertical: 8.0), // Odstęp między kafelkami
+            margin: const EdgeInsets.symmetric(vertical: 8.0), //odstęp między kafelkami
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12), // Zaokrąglone rogi kafelka
+              borderRadius: BorderRadius.circular(12), // zaokrąglone rogi
             ),
 
             child:ExpansionTile(
@@ -112,33 +112,19 @@ class _BlogState extends State<Blog> {
                 FutureBuilder<String>(
                   future: wczytajTekst(wpis.sciezka),
                   builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Co się wyświetla podczas ładowania pliku
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: CircularProgressIndicator(),
-                      );
-                    } // if waiting
-
-                    if (snapshot.hasError) {
-                      return const Padding(
-                        padding: EdgeInsets.all(16.0),
-                        child: Text("Błąd podczas wczytywania artykułu."),
-                      );
-                    } // if error
 
                     return Padding(
                       padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
                       child: Text(
-                        snapshot.data!,
+                        snapshot.data ?? "",
                         textAlign: TextAlign.justify,
                         style: const TextStyle(
                           fontSize: 15,
                           height: 1.4,
-                        ), // TextStyle
-                      ), // Text
-                    ); // Padding
-                  }, // builder FutureBuilder
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
