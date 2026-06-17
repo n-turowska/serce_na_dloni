@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 class Artykul {
   final String tytul;
   final String opis;
-  final String tekst;
+  final String sciezka;
 
   Artykul({
     required this.tytul,
     required this.opis,
-    required this.tekst,
+    required this.sciezka,
   });
 }
 
@@ -25,14 +26,34 @@ class _BlogState extends State<Blog> {
     Artykul(
       tytul: "Tytuł",
       opis: " Opis",
-      tekst: "Treść artykułu",
+      sciezka: "wpisy/artykul1.txt",
     ),
     Artykul(
       tytul: "Tytuł",
       opis: " Opis",
-      tekst: "Treść artykułu",
+      sciezka: "wpisy/artykul2.txt",
+    ),
+    Artykul(
+      tytul: "Tytuł",
+      opis: " Opis",
+      sciezka: "wpisy/artykul3.txt",
+    ),
+    Artykul(
+      tytul: "Tytuł",
+      opis: " Opis",
+      sciezka: "wpisy/artykul4.txt",
+    ),
+    Artykul(
+      tytul: "Tytuł",
+      opis: " Opis",
+      sciezka: "wpisy/artykul5.txt",
     ),
   ];
+
+  // funkcja, która czyta plik tekstowy
+  Future<String> wczytajTekst(String sciezka) async {
+    return await rootBundle.loadString(sciezka);
+  }
 
   @override
   Widget build(BuildContext context){
@@ -88,15 +109,36 @@ class _BlogState extends State<Blog> {
               ),
 
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-                  child: Text(
-                    wpis.tekst,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      height: 1.4,
-                    ),
-                  ),
+                FutureBuilder<String>(
+                  future: wczytajTekst(wpis.sciezka),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      // Co się wyświetla podczas ładowania pliku
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(),
+                      );
+                    } // if waiting
+
+                    if (snapshot.hasError) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: Text("Błąd podczas wczytywania artykułu."),
+                      );
+                    } // if error
+
+                    return Padding(
+                      padding: const EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+                      child: Text(
+                        snapshot.data!,
+                        textAlign: TextAlign.justify,
+                        style: const TextStyle(
+                          fontSize: 15,
+                          height: 1.4,
+                        ), // TextStyle
+                      ), // Text
+                    ); // Padding
+                  }, // builder FutureBuilder
                 ),
               ],
             ),
