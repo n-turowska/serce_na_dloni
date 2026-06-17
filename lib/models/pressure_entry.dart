@@ -2,13 +2,15 @@ import 'package:uuid/uuid.dart';
 
 class PressureEntry {
   final String id;
-  final int score;
+  final int systolic;
+  final int diasystolic;
   final String? note;
   final DateTime createdAt;
 
   PressureEntry({
     String? id,
-    required this.score,
+    required this.systolic,
+    required this.diasystolic,
     this.note,
     DateTime? createdAt,
   })  : id = id ?? const Uuid().v4(),
@@ -16,13 +18,15 @@ class PressureEntry {
 
   PressureEntry copyWith({
     String? id,
-    int? score,
+    int? systolic,
+    int? diasystolic,
     String? note,
     DateTime? createdAt,
   }) {
     return PressureEntry(
       id: id ?? this.id,
-      score: score ?? this.score,
+      systolic: systolic ?? this.systolic,
+      diasystolic: diasystolic ?? this.diasystolic,
       note: note ?? this.note,
       createdAt: createdAt ?? this.createdAt,
     );
@@ -30,6 +34,6 @@ class PressureEntry {
 
   @override
   String toString() {
-    return 'PressureEntry(id: $id, score: $score, note: $note, createdAt: $createdAt)';
+    return 'PressureEntry(id: $id, systolic: $systolic, diasystolic: $diasystolic, note: $note, createdAt: $createdAt)';
   }
 }
