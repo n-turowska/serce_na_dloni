@@ -14,7 +14,9 @@ class _PomiaryState extends State<Pomiary> {
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: Text("Pomiary"),
+        title: Text("Dodaj pomiar"),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        centerTitle: true,
       ),
       body: Text("Pomiar 1"),
 

@@ -28,7 +28,17 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // PIERWSZY BUTTON: Z ikoną plusa (+)
+            // PIERWSZY BUTTON: BLOG
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/blog');
+              },
+              child: const Text("Blog"),
+            ),
+          
+            const SizedBox(width: 20),
+
+            // DRUGI BUTTON: DODAJ POMIAR
             ElevatedButton.icon(
               onPressed: () {
                 Navigator.pushNamed(context, '/pomiary');
@@ -39,14 +49,14 @@ class _MyHomePageState extends State<MyHomePage> {
             
             const SizedBox(width: 20), // Odstęp między przyciskami
             
-            // DRUGI BUTTON: Zwykły tekstowy
+            // TRZECI BUTTON: KONTO
             ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, '/blog');
+                Navigator.pushNamed(context, '/konto');
               },
-              child: const Text("Blog"),
+              child: const Text("Konto"),
             )
-          ],
+          ], // children
         ),
       ),
     );

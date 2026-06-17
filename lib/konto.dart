@@ -1,24 +1,24 @@
 import 'package:flutter/material.dart';
 
-class Blog extends StatefulWidget{
+class Konto extends StatefulWidget{
   
-    const Blog({super.key});
+    const Konto({super.key});
 
     @override
-  State<Blog> createState() => _BlogState();
+  State<Konto> createState() => _KontoState();
 }
 
-class _BlogState extends State<Blog> {
+class _KontoState extends State<Konto> {
 
   @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: Text("Blog"),
+        title: Text("Konto"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: Text("Wpis 1"),
+      body: Text("To twoje konto"),
 
     );
   }
