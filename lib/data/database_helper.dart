@@ -20,7 +20,7 @@ class DatabaseHelper {
   }
   
   Future<void> _onCreate(Database db, int version) async {
-     await db.execute(''' // (2)!
+     await db.execute('''
     CREATE TABLE pressure_entries(
       id TEXT PRIMARY KEY,
       systolic INTEGER NOT NULL,
@@ -33,6 +33,8 @@ class DatabaseHelper {
 
   Future<void> insertPressure(Map<String, dynamic> pressure) async {
        final db = await database;
+       print('--- SQLITE INSERT: $pressure');
+
        await db.insert(
          'pressure_entries',
          pressure,
@@ -44,7 +46,10 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getPressures() async {
     final db = await database;
-    return await db.query('pressure_entries', orderBy: 'created_at DESC');
+    final result = await db.query('pressure_entries', orderBy: 'created_at DESC');
+
+    print('--- SQLITE FETCHED ENTRIES COUNT: ${result.length}');
+    return result;
   }
   
   Future<void> deletePressure(String id) async {

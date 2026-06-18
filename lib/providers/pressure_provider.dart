@@ -24,7 +24,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
           id: '2', 
           systolic: 135, 
           diastolic: 85, 
-          createdAt: DateTime.now(),
+          createdAt: DateTime.now(), 
           note: 'Po kawie',
         ),
       ];
