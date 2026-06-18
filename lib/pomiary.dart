@@ -23,9 +23,9 @@ class _PomiaryState extends ConsumerState<Pomiary> {
 
   void _submitPressure() {
        ref.read(pressureProvider.notifier).addPressure(
-         systolic: _systolic,
-         diastolic: _diastolic,
-         note: _noteController.text.isEmpty ? null : _noteController.text,
+        _systolic,
+        _diastolic,
+        _noteController.text.isEmpty ? null : _noteController.text,
        );
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pomiar został zapisany')),
