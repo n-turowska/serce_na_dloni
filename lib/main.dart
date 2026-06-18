@@ -19,9 +19,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Serce na Dłoni'),
+      home: const MyHomePage(),
       routes: {
-        '/startowy': (context) => const MyHomePage(title: 'Serce na Dłoni'),
+        '/startowy': (context) => const MyHomePage(),
         '/blog': (context) => const Blog(),
         '/pomiary': (context) => const Pomiary(),
         '/konto' : (context) => const Konto(),
