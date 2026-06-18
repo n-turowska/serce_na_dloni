@@ -44,7 +44,7 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> getPressures() async {
     final db = await database;
-    return await db.query('pressure_entries', orderBy: 'created_at DESC');;
+    return await db.query('pressure_entries', orderBy: 'created_at DESC');
   }
   
   Future<void> deletePressure(String id) async {
@@ -52,7 +52,7 @@ class DatabaseHelper {
     await db.delete('pressure_entries', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<void> updateMood(String id, Map<String, dynamic> pressure) async {
+  Future<void> updatePressure(String id, Map<String, dynamic> pressure) async {
     final db = await database;
     await db.update(
     'pressure_entries',
