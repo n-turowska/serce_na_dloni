@@ -32,10 +32,8 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
       for (var wpis in przykladoweWpisy) {
         await _repository.addPressure(wpis);
       }
-
-      loadedPressures = await _repository.getAllPressures();
     }
-    state = loadedPressures;
+    state = await _repository.getAllPressures();
   }
 
   Future<void> addPressure(int systolic, int diastolic, String? note, {DateTime? createdAt}) async {
@@ -55,10 +53,12 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   }
    
   // updatePressure
-  void updatePressure(String id, int systolic, int diastolic, String? note) {
-    state = state.map((e) => e.id == id ? e.copyWith(systolic: systolic, diastolic: diastolic, note: note) : e).toList();
+  void updatePressure(String id, int systolic, int diastolic, String? note) async {
+    final updated =
+      state.firstWhere((e) => e.id == id).copyWith(systolic: systolic, diastolic: diastolic, note:note);
+    await _repository.updatePressure(updated);
+    state = state.map((e) => e.id == id ?  updated : e).toList();
   }
-  
 }
 
 final pressureProvider = StateNotifierProvider<PressureNotifier, List<PressureEntry>>((ref) {
