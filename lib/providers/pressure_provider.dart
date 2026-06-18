@@ -45,3 +45,27 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   }
   
 }
+
+final pressureProvider = StateNotifierProvider<PressureNotifier, List<PressureEntry>>((ref) {
+  return PressureNotifier();
+});
+
+final pressureStatsProvider = Provider<Map<String, dynamic>>((ref) {
+  final pressures = ref.watch(pressureProvider);
+  // Calculate and return stats map
+  if (pressures.isEmpty) {
+    return {'totalEntries': 0, 'averageSystolic': 0.0, 'highestSystolic': 0, 'lowestSystolic': 0,
+              'averageDiastolic': 0.0, 'highestDiastolic': 0, 'lowestDiastolic': 0};
+  }
+  final systolics = pressures.map((m) => m.systolic).toList();
+  final diastolics = pressures.map((m) => m.diastolic).toList();
+  return {
+    'totalEntries': pressures.length,
+    'averageSystolic': systolics.reduce((a, b) => a + b) / systolics.length,
+    'highestSystolic': systolics.reduce((a, b) => a > b ? a : b),
+    'lowestSystolic': systolics.reduce((a, b) => a < b ? a : b),
+    'averageDiastolic': diastolics.reduce((a, b) => a + b) / systolics.length,
+    'highestDiastolic': diastolics.reduce((a, b) => a > b ? a : b),
+    'lowestDiastolic': diastolics.reduce((a, b) => a < b ? a : b),
+  };
+});
