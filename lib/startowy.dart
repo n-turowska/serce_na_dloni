@@ -5,12 +5,26 @@ import '../providers/pressure_provider.dart';
 import '../models/pressure_entry.dart';
 import 'pomiary.dart';
 
-
-class MyHomePage extends ConsumerWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+}
+
+
+class _MyHomePageState extends ConsumerState<MyHomePage> {
+  
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(pressureProvider.notifier).loadPressures();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
   
     final pressures = ref.watch(pressureProvider);
 
