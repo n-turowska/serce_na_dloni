@@ -52,6 +52,24 @@ class PressureEntry {
     );
   }
 
+    Map<String, dynamic> toJson() {
+    return {
+      'systolic' : systolic,
+      'diastolic' : diastolic,
+      'note' : note,
+    };
+  }
+  
+  factory PressureEntry.fromJson(Map<String, dynamic> json) {
+    return PressureEntry(
+      id: ['id'].toString(),
+      systolic: json['systolic'] as int,
+      diastolic: json['diastolic'] as int,
+      note: json['note'] as String?,
+      createdAt: DateTime.parse(json['created_at'] as String)
+    ); // Replace with actual implementation
+  }
+
   @override
   String toString() {
     return 'PressureEntry(id: $id, systolic: $systolic, diastolic: $diastolic, note: $note, createdAt: $createdAt)';
