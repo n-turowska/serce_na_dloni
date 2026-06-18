@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'blog.dart';
 import 'startowy.dart';
 import 'pomiary.dart';
+import 'konto.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,11 +18,12 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Ekran Startowy'),
+      home: const MyHomePage(title: 'Serce na Dłoni'),
       routes: {
-        '/startowy': (context) => const MyHomePage(title: 'Ekran Startowy'),
+        '/startowy': (context) => const MyHomePage(title: 'Serce na Dłoni'),
         '/blog': (context) => const Blog(),
         '/pomiary': (context) => const Pomiary(),
+        '/konto' : (context) => const Konto(),
       }
     );
   }

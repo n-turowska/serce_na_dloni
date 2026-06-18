@@ -10,41 +10,54 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        centerTitle: true,
       ),
       body: Center(
-        child: Column(
+        child: Text("Witaj w aplikacji Serce na Dłoni!"),
+        ),
+
+        bottomNavigationBar: Container(
+        color: Theme.of(context).colorScheme.inversePrimary,
+        padding: const EdgeInsets.symmetric(vertical: 12.0),
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text('Witaj w sercce na dłoni'),
+          children: [
+            // PIERWSZY BUTTON: BLOG
             ElevatedButton(
               onPressed: () {
-                          Navigator.pushNamed(context, '/pomiary');
-                        }, 
-              child: Text("Pomiary")
+                Navigator.pushNamed(context, '/blog');
+              },
+              child: const Text("Blog"),
             ),
-          ],
+          
+            const SizedBox(width: 20),
+
+            // DRUGI BUTTON: DODAJ POMIAR
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/pomiary');
+              },
+              icon: const Icon(Icons.add), // Ikona plusa
+              label: const Text("Pomiar"),
+            ),
+            
+            const SizedBox(width: 20), // Odstęp między przyciskami
+            
+            // TRZECI BUTTON: KONTO
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/konto');
+              },
+              child: const Text("Konto"),
+            )
+          ], // children
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-                          Navigator.pushNamed(context, '/blog');
-                        },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }
