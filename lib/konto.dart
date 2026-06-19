@@ -30,7 +30,7 @@ class _KontoState extends ConsumerState<Konto> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF6750A4), // Wasz fiolet
+              primary: Color(0xFF6750A4),
               onPrimary: Colors.white,
             ),
           ),
