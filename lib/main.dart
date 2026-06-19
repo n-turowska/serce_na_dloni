@@ -4,6 +4,7 @@ import 'blog.dart';
 import 'startowy.dart';
 import 'pomiary.dart';
 import 'konto.dart';
+import 'logowanie.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -19,8 +20,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(),
+      home: const Logowanie(),
       routes: {
+        '/logowanie': (context) => const Logowanie(),
         '/startowy': (context) => const MyHomePage(),
         '/blog': (context) => const Blog(),
         '/pomiary': (context) => const Pomiary(),

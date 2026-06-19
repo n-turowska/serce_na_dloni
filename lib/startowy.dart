@@ -22,7 +22,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     });
   }
 
-  // SPECJALNA FUNKCJA POKAZUJĄCA OKIENKO POTWIERDZENIA USUNIĘCIA
+  // FUNKCJA POKAZUJĄCA OKIENKO POTWIERDZENIA USUNIĘCIA
   void dialogUsuwania(BuildContext context, String id) {
     showDialog(
       context: context,
