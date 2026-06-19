@@ -5,11 +5,13 @@ class Artykul {
   final String tytul;
   final String opis;
   final String sciezka;
+  bool isRead;
 
   Artykul({
     required this.tytul,
     required this.opis,
     required this.sciezka,
+    this.isRead = false,
   });
 }
 
@@ -81,15 +83,17 @@ class _BlogState extends State<Blog> {
               shape:const Border(),
               collapsedShape: const Border(),
 
-              leading: CircleAvatar(
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(
-                  "${index + 1}",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+              leading: IconButton(
+                icon: Icon(
+                  wpis.isRead ? Icons.check_circle : Icons.radio_button_unchecked,
+                  color: wpis.isRead ? Colors.green : Colors.grey,
+                  size: 28,
                 ),
+                onPressed: () {
+                  setState(() {
+                    wpis.isRead = !wpis.isRead;
+                  });
+                },
               ),
 
               title: Text(
