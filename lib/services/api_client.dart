@@ -49,5 +49,31 @@ class ApiClient {
     );
   }
 
+  Future<void> delete(String endpoint) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final response = await http.delete(url, headers: _headers);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw ApiException(
+        'DELETE $endpoint failed',
+        statusCode: response.statusCode,
+      );
+    }
+  }
+
+  Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final response = await http.put(
+      url,
+      headers: _headers,
+      body: jsonEncode(body),
+    );
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+    }
+    throw ApiException(
+      'PUT $endpoint failed',
+      statusCode: response.statusCode,
+    );
+  }
 
 }
