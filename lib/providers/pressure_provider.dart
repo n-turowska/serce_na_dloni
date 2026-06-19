@@ -5,7 +5,7 @@ import '../data/pressure_repository.dart';
 class PressureNotifier extends StateNotifier<List<PressureEntry>> { 
   final PressureRepository _repository;
   PressureNotifier(this._repository) : super([]){
-    loadPressures;
+    loadPressures();
   }
 
   Future<void> loadPressures() async {
