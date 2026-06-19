@@ -36,5 +36,18 @@ class ApiClient {
     );
   }
 
+  Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    // Make the POST request with JSON body and handle the response
+    final response = await http.post(url, headers: _headers, body: jsonEncode(body));
+    if (response.statusCode >= 200 && response.statusCode < 300){
+      return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+    }
+    throw ApiException(
+      'POST $endpoint failed',
+      statusCode: response.statusCode,
+    );
+  }
+
 
 }
