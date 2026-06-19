@@ -30,7 +30,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
       ];
 
       for (var wpis in przykladoweWpisy) {
-        await _repository.addPressure(wpis);
+        await _repository.addPressure(wpis.systolic, wpis.diastolic, wpis.note);
       }
     }
     state = await _repository.getAllPressures();
@@ -43,7 +43,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
       note: note,
       createdAt: createdAt,
     );
-    await _repository.addPressure(newEntry);
+    await _repository.addPressure(newEntry.systolic, newEntry.diastolic, newEntry.note);
     state = [newEntry, ...state];
   }
   
