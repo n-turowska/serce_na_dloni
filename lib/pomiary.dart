@@ -11,22 +11,36 @@ class Pomiary extends ConsumerStatefulWidget{
 }
 
 class _PomiaryState extends ConsumerState<Pomiary> {
-  int _systolic = 80;
-  int _diastolic = 80;
+  final _systolicController = TextEditingController();
+  final _diastolicController = TextEditingController();
   final _noteController = TextEditingController();
 
   @override
   void dispose() {
+    _systolicController.dispose();
+    _diastolicController.dispose();
     _noteController.dispose();
     super.dispose();
   }
 
   void _submitPressure() {
-       ref.read(pressureProvider.notifier).addPressure(
-        _systolic,
-        _diastolic,
-        _noteController.text.isEmpty ? null : _noteController.text,
-       );
+    final systolic = int.tryParse(_systolicController.text) ?? 0;
+    final diastolic = int.tryParse(_diastolicController.text) ?? 0;
+
+    // Prosta walidacja, żeby użytkownik nie wpisał bzdur
+    if (systolic <= 0 || diastolic <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Proszę podać poprawne wartości ciśnienia!')),
+      );
+      return;
+    }
+
+    ref.read(pressureProvider.notifier).addPressure(
+      systolic,
+      diastolic,
+      _noteController.text.isEmpty ? null : _noteController.text,
+    );
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Pomiar został zapisany')),
     );
@@ -41,7 +55,8 @@ class _PomiaryState extends ConsumerState<Pomiary> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: Padding(
+
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -49,38 +64,86 @@ class _PomiaryState extends ConsumerState<Pomiary> {
             Text(
               'Podaj wyniki pomiaru ciśnienia',
               style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Systolic: $_systolic',
-              style: Theme.of(context).textTheme.titleLarge,
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'Diastolic: $_diastolic',
-              style: Theme.of(context).textTheme.titleLarge,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
+
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 90,
+                      child: TextField(
+                        controller: _systolicController,
+                        keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        decoration: const InputDecoration(
+                          hintText: '120',
+                          labelText: 'SYS',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        '/',
+                        style: TextStyle(fontSize: 36, color: Colors.grey, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+
+                    SizedBox(
+                      width: 90,
+                      child: TextField(
+                        controller: _diastolicController,
+                        keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        decoration: const InputDecoration(
+                          hintText: '80',
+                          labelText: 'DIA',
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                          border: OutlineInputBorder(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
             TextField(
               controller: _noteController,
               decoration: const InputDecoration(
-                labelText: 'Note (optional)',
-                hintText: 'How was your day?',
+                labelText: 'Notatka (opcjonalnie)',
+                hintText: 'Np. Pomiar po śniadaniu...',
                 border: OutlineInputBorder(),
               ),
               maxLines: 3,
             ),
+
             const SizedBox(height: 24),
+
             FilledButton.icon(
               onPressed: _submitPressure,
               icon: const Icon(Icons.check),
-              label: const Text('Save Entry'),
+              label: const Text('Zapisz pomiar'),
             ),
           ],
         ),
       ),
-
     );
   }
 }
