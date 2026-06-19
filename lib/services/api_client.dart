@@ -23,5 +23,18 @@ class ApiClient {
         'Authorization': 'Bearer $tempAuthToken',
       };
 
+  Future<dynamic> get(String endpoint) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    // Make the GET request and handle the response
+    final response = await http.get(url, headers: _headers);
+    if (response.statusCode >= 200 && response.statusCode < 300){
+      return jsonDecode(response.body);
+    }
+    throw ApiException(
+      'GET $endpoint failed',
+      statusCode: response.statusCode,
+    );
+  }
+
 
 }
