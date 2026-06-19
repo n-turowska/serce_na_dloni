@@ -61,33 +61,33 @@ class _PomiaryState extends ConsumerState<Pomiary> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              'Podaj wyniki pomiaru ciśnienia',
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-
             Card(
               elevation: 4,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+                child: Column(
                   children: [
-                    SizedBox(
-                      width: 90,
-                      child: TextField(
-                        controller: _systolicController,
-                        keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        decoration: const InputDecoration(
-                          hintText: '120',
-                          labelText: 'SYS',
+                    Text(
+                      'Podaj wyniki pomiaru ciśnienia:\n skurczowe / rozkurczowe',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                     textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 18),
+
+                    Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 90,
+                        child: TextField(
+                          controller: _systolicController,
+                          keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          decoration: const InputDecoration(
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: OutlineInputBorder(),
                         ),
@@ -110,8 +110,6 @@ class _PomiaryState extends ConsumerState<Pomiary> {
                         textAlign: TextAlign.center,
                         style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                         decoration: const InputDecoration(
-                          hintText: '80',
-                          labelText: 'DIA',
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                           border: OutlineInputBorder(),
                         ),
@@ -119,7 +117,9 @@ class _PomiaryState extends ConsumerState<Pomiary> {
                     ),
                   ],
                 ),
+              ],
               ),
+            ),
             ),
 
             const SizedBox(height: 24),
