@@ -24,56 +24,88 @@ class ApiClient {
       };
 
   Future<dynamic> get(String endpoint) async {
-    final url = Uri.parse('$baseUrl$endpoint');
-    // Make the GET request and handle the response
-    final response = await http.get(url, headers: _headers);
-    if (response.statusCode >= 200 && response.statusCode < 300){
-      return jsonDecode(response.body);
+    try {
+      final url = Uri.parse('$baseUrl$endpoint');
+      // Make the GET request and handle the response
+      final response = await http.get(url, headers: _headers);
+      if (response.statusCode >= 200 && response.statusCode < 300){
+        return jsonDecode(response.body);
+      }
+      throw ApiException(
+        'GET $endpoint failed',
+        statusCode: response.statusCode,
+      );
+    } on SocketException {
+      throw ApiException('No internet connection. Please check your network.');
+    } on HttpException { 
+      throw ApiException('Server error. Please try again later.');
+    } on FormatException { 
+      throw ApiException('Invalid response from server.');
     }
-    throw ApiException(
-      'GET $endpoint failed',
-      statusCode: response.statusCode,
-    );
   }
 
   Future<dynamic> post(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('$baseUrl$endpoint');
-    // Make the POST request with JSON body and handle the response
-    final response = await http.post(url, headers: _headers, body: jsonEncode(body));
-    if (response.statusCode >= 200 && response.statusCode < 300){
-      return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+    try {  
+      final url = Uri.parse('$baseUrl$endpoint');
+      // Make the POST request with JSON body and handle the response
+      final response = await http.post(url, headers: _headers, body: jsonEncode(body));
+      if (response.statusCode >= 200 && response.statusCode < 300){
+        return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      }
+      throw ApiException(
+        'POST $endpoint failed',
+        statusCode: response.statusCode,
+      );
+    } on SocketException {
+      throw ApiException('No internet connection. Please check your network.');
+    } on HttpException { 
+      throw ApiException('Server error. Please try again later.');
+    } on FormatException { 
+      throw ApiException('Invalid response from server.');
     }
-    throw ApiException(
-      'POST $endpoint failed',
-      statusCode: response.statusCode,
-    );
   }
 
   Future<void> delete(String endpoint) async {
-    final url = Uri.parse('$baseUrl$endpoint');
-    final response = await http.delete(url, headers: _headers);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw ApiException(
-        'DELETE $endpoint failed',
-        statusCode: response.statusCode,
-      );
+    try {  
+      final url = Uri.parse('$baseUrl$endpoint');
+      final response = await http.delete(url, headers: _headers);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw ApiException(
+          'DELETE $endpoint failed',
+          statusCode: response.statusCode,
+        );
+      }
+    } on SocketException {
+      throw ApiException('No internet connection. Please check your network.');
+    } on HttpException { 
+      throw ApiException('Server error. Please try again later.');
+    } on FormatException { 
+      throw ApiException('Invalid response from server.');
     }
   }
 
   Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('$baseUrl$endpoint');
-    final response = await http.put(
-      url,
-      headers: _headers,
-      body: jsonEncode(body),
-    );
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+    try {
+      final url = Uri.parse('$baseUrl$endpoint');
+      final response = await http.put(
+        url,
+        headers: _headers,
+        body: jsonEncode(body),
+      );
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        return response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      }
+      throw ApiException(
+        'PUT $endpoint failed',
+        statusCode: response.statusCode,
+      );
+    } on SocketException {
+      throw ApiException('No internet connection. Please check your network.');
+    } on HttpException { 
+      throw ApiException('Server error. Please try again later.');
+    } on FormatException { 
+      throw ApiException('Invalid response from server.');
     }
-    throw ApiException(
-      'PUT $endpoint failed',
-      statusCode: response.statusCode,
-    );
   }
 
 }
