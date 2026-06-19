@@ -28,6 +28,15 @@ class PressureApiService {
     await _apiClient.delete('/pressures/$id'); 
   }
 
+  Future<PressureEntry> updatePressure(String id, int systolic, int diastolic, String? note) async {
+    final data = await _apiClient.put('/pressures/$id', {
+      'systolic': systolic,
+      'diastolic': diastolic,
+      'note': note,
+    });
+    return PressureEntry.fromJson(data as Map<String, dynamic>);
+  }
+
 
 
 }
