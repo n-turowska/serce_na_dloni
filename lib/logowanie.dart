@@ -1,21 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
 
-class Logowanie extends StatefulWidget{
+class Logowanie extends ConsumerStatefulWidget{
   
     const Logowanie({super.key});
 
     @override
-  State<Logowanie> createState() => _LogowanieState();
+  ConsumerState<Logowanie> createState() => _LogowanieState();
 }
 
-class _LogowanieState extends State<Logowanie> {
-
-  final _loginController = TextEditingController();
+class _LogowanieState extends ConsumerState<Logowanie> {
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  bool _isLoading = false;
 
   @override
   void dispose() {
-    _loginController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -25,6 +29,31 @@ class _LogowanieState extends State<Logowanie> {
     // dzięki czemu użytkownik po kliknięciu "wstecz" na ekranie głównym nie wróci do logowania.
     Navigator.pushReplacementNamed(context, '/startowy');
   }
+
+  Future<void> _login() async {
+  if (!_formKey.currentState!.validate()) return;
+
+  setState(() => _isLoading = true);
+  try {
+    await ref.read(authProvider.notifier).login( 
+          _emailController.text.trim(),
+          _passwordController.text,
+        );
+
+    if (mounted) {
+        Navigator.pushReplacementNamed(context, '/startowy');
+      }
+
+  } on AuthException catch (e) {
+    if (mounted) { 
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    }
+  } finally {
+    if (mounted) setState(() => _isLoading = false);
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +74,25 @@ class _LogowanieState extends State<Logowanie> {
 
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'Witamy w Serce na Dłoni!',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+
+                  child: Form(
+                    key: _formKey,
+
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          'Witamy w Serce na Dłoni!',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
                         ),
                     textAlign: TextAlign.center,
                   ),
@@ -60,9 +100,9 @@ class _LogowanieState extends State<Logowanie> {
 
                   // Pole LOGIN
                   TextField(
-                    controller: _loginController,
+                    controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Nazwa użytkownika',
+                      labelText: 'Nazwa użytkownika/email',
                       prefixIcon: Icon(Icons.person),
                       border: OutlineInputBorder(),
                     ),
@@ -70,7 +110,7 @@ class _LogowanieState extends State<Logowanie> {
                   const SizedBox(height: 16),
 
                   // Pole HASŁO
-                  TextField(
+                  TextFormField(
                     controller: _passwordController,
                     obscureText: true, // ukrywa wpisywane znaki (kropki)
                     decoration: const InputDecoration(
@@ -78,8 +118,26 @@ class _LogowanieState extends State<Logowanie> {
                       prefixIcon: Icon(Icons.lock),
                       border: OutlineInputBorder(),
                     ),
+                    validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Proszę podać hasło';
+                        }
+                        if (value.length < 6) {
+                          return 'Hasło musi mieć minimum 6 znaków';
+                        }
+                        return null;
+                      },
                   ),
                   const SizedBox(height: 24),
+
+                  _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : FilledButton(
+                            onPressed: _login, // Wywołuje oficjalne logowanie przez API
+                            child: const Text('Zaloguj się przez API'),
+                          ),
+
+                    const SizedBox(height: 8),
 
                   // Przycisk Zaloguj (na razie po prostu wpuszcza dalej)
                   FilledButton(
@@ -90,7 +148,7 @@ class _LogowanieState extends State<Logowanie> {
                   const SizedBox(height: 8),
                 
                   Text(
-                    'Wersja testowa, po prostu kliknij Zaloguj bez podawania danych',
+                    'Wersja testowa, kliknij Zaloguj bez podawania danych',
                     style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
@@ -100,6 +158,9 @@ class _LogowanieState extends State<Logowanie> {
           ),
         ),
       ),
+    ),
+    ),
+    ),
     );
   }
 }
