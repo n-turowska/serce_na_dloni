@@ -34,10 +34,6 @@ class _LogowanieState extends ConsumerState<Logowanie> {
           _passwordController.text,
         );
 
-    if (mounted) {
-        Navigator.pushReplacementNamed(context, '/startowy');
-      }
-
   } on AuthException catch (e) {
     if (mounted) { 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -87,7 +83,7 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                   TextField(
                     controller: _emailController,
                     decoration: const InputDecoration(
-                      labelText: 'Nazwa użytkownika/email',
+                      labelText: 'Email',
                       prefixIcon: Icon(Icons.person),
                       border: OutlineInputBorder(),
                     ),
@@ -119,7 +115,7 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
                             onPressed: _login, // Wywołuje oficjalne logowanie przez API
-                            child: const Text('Zaloguj się przez API'),
+                            child: const Text('Zaloguj się'),
                           ),
 
                   const SizedBox(height: 8),
