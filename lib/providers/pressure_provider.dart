@@ -9,42 +9,22 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   }
 
   Future<void> loadPressures() async {
-    List<PressureEntry> loadedPressures = await _repository.getAllPressures();
-
-    if(loadedPressures.isEmpty){
-    final przykladoweWpisy = [
-        PressureEntry(
-          id: '1', 
-          systolic: 120, 
-          diastolic: 80, 
-          createdAt: DateTime.now().subtract(const Duration(hours: 5)),
-          note: 'Pomiar poranny',
-        ),
-        PressureEntry(
-          id: '2', 
-          systolic: 135, 
-          diastolic: 85, 
-          createdAt: DateTime.now(), 
-          note: 'Po kawie',
-        ),
-      ];
-
-      for (var wpis in przykladoweWpisy) {
-        await _repository.addPressure(wpis.systolic, wpis.diastolic, wpis.note);
-      }
+    try {
+      final entries = await _repository.getAllPressures();
+      state = entries;
+    } catch (e) {
+      state = [];
     }
-    state = await _repository.getAllPressures();
   }
 
   Future<void> addPressure(int systolic, int diastolic, String? note, {DateTime? createdAt}) async {
-    final newEntry = PressureEntry(
-      systolic: systolic,
-      diastolic: diastolic,
-      note: note,
-      createdAt: createdAt,
-    );
-    await _repository.addPressure(newEntry.systolic, newEntry.diastolic, newEntry.note);
-    state = [newEntry, ...state];
+    try {
+      final savedEntry = await _repository.addPressure(systolic, diastolic, note);
+      
+      state = [savedEntry, ...state];
+    } catch (e) {
+      await loadPressures();
+    }
   }
   
   Future<void> deletePressure(String id) async {
@@ -52,7 +32,6 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
     state = state.where((e) => e.id != id).toList();
   }
    
-  // updatePressure
   void updatePressure(String id, int systolic, int diastolic, String? note) async {
     final updated =
       state.firstWhere((e) => e.id == id).copyWith(systolic: systolic, diastolic: diastolic, note:note);
@@ -61,7 +40,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   }
 }
 
-final pressureProvider = StateNotifierProvider<PressureNotifier, List<PressureEntry>>((ref) {
+final pressureProvider = StateNotifierProvider.autoDispose<PressureNotifier, List<PressureEntry>>((ref) {
   final repository = PressureRepository();
   return PressureNotifier(repository);
 });

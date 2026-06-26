@@ -33,7 +33,6 @@ class DatabaseHelper {
 
   Future<void> insertPressure(Map<String, dynamic> pressure) async {
        final db = await database;
-       print('--- SQLITE INSERT: $pressure');
 
        await db.insert(
          'pressure_entries',
@@ -48,7 +47,6 @@ class DatabaseHelper {
     final db = await database;
     final result = await db.query('pressure_entries', orderBy: 'created_at DESC');
 
-    print('--- SQLITE FETCHED ENTRIES COUNT: ${result.length}');
     return result;
   }
   
