@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
+import '../services/auth_service.dart';
 
-class Rejestracja extends StatefulWidget {
+class Rejestracja extends ConsumerStatefulWidget {
   const Rejestracja({super.key});
 
   @override
-  State<Rejestracja> createState() => _RejestracjaState();
+  ConsumerState<Rejestracja> createState() => _RejestracjaState();
 }
 
-class _RejestracjaState extends State<Rejestracja> {
+class _RejestracjaState extends ConsumerState<Rejestracja> {
   final _formKey = GlobalKey<FormState>();
   
   // Kontrolery dla nowych pól tekstowych
@@ -15,6 +18,7 @@ class _RejestracjaState extends State<Rejestracja> {
   final _lastNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -25,22 +29,32 @@ class _RejestracjaState extends State<Rejestracja> {
     super.dispose();
   }
 
-  void _zalozKontoMock() {
+  Future<void> _uruchomRejestracje() async {
     if (!_formKey.currentState!.validate()) return;
 
-    print('--- KLIKNIĘTO: ZAŁÓŻ KONTO (Wersja testowa) ---');
-    print('Imię: ${_firstNameController.text}');
-    print('Nazwisko: ${_lastNameController.text}');
-    print('Email: ${_emailController.text}');
-    print('Hasło: [UKRYTE - długość: ${_passwordController.text.length} znaków]');
-    print('---------------------------------------------');
+    setState(() => _isLoading = true);
+    try {
+      await ref.read(authProvider.notifier).register(
+            _emailController.text.trim(),
+            _firstNameController.text.trim(), // Jako username przekazujemy imię
+            _passwordController.text,
+          );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Rejestracja testowa pomyślna! Witamy.')),
-    );
-
-    // Przekierowanie na ekran startowy po założeniu konta
-    Navigator.pushReplacementNamed(context, '/startowy');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Konto zostało utworzone!')),
+        );
+        Navigator.pushReplacementNamed(context, '/startowy');
+      }
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   @override
@@ -133,16 +147,13 @@ class _RejestracjaState extends State<Rejestracja> {
                     // PRZYCISK: ZAŁÓŻ KONTO I ZALOGUJ SIĘ
                     SizedBox(
                       height: 50,
-                      child: FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF6750A4), // Fiolet motywu
-                        ),
-                        onPressed: _zalozKontoMock,
-                        child: const Text(
-                          'Załóż konto i zaloguj się',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                      ),
+                      child: _isLoading
+                        ? const Center(child: CircularProgressIndicator())
+                        : FilledButton(
+                         style: FilledButton.styleFrom(backgroundColor: const Color(0xFF6750A4)),
+                         onPressed: _uruchomRejestracje,
+                         child: const Text('Załóż konto i zaloguj się', style: TextStyle(fontSize: 16)),
+                       ),
                     ),
                     const SizedBox(height: 12),
                     
