@@ -320,8 +320,11 @@ class _KontoState extends ConsumerState<Konto> {
             //GUZIK WYLOGUJ
             OutlinedButton.icon(
               onPressed: () async{
-                Navigator.of(context).pushNamedAndRemoveUntil('/logowanie', (route) => false);
+                Navigator.of(context).popUntil((route) => route.isFirst);
                 await ref.read(authProvider.notifier).logout();
+
+                ref.invalidate(authProvider);
+                ref.invalidate(pressureProvider);
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text("Wyloguj się", style: TextStyle(color: Colors.red)),
