@@ -24,6 +24,8 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
 
   // FUNKCJA POKAZUJĄCA OKIENKO POTWIERDZENIA USUNIĘCIA
   void dialogUsuwania(BuildContext context, String id) {
+    final messenger = ScaffoldMessenger.of(context);
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -39,9 +41,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
           TextButton(
             onPressed: () async {
               await ref.read(pressureProvider.notifier).deletePressure(id);
-              if (mounted) Navigator.pop(ctx);
+              if (ctx.mounted) Navigator.pop(ctx);
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                messenger.showSnackBar(
                   const SnackBar(content: Text('Wpis został usunięty')),
                 );
               }
