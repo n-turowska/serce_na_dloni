@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config.dart';
+import 'auth_service.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -13,21 +14,50 @@ class ApiException implements Exception {
   String toString() => 'ApiException: $message (status: $statusCode)';
 }
 
+class UnauthorizedException implements Exception {
+  @override
+  String toString() => 'UnauthorizedException: Brak tokenu autoryzacyjnego.';
+}
+
+class SessionExpiredException implements Exception {
+  @override
+  String toString() => 'SessionExpiredException: Sesja wygasła. Zaloguj się ponownie.';
+}
+
 class ApiClient {
   final String baseUrl;
+  final AuthService _authService;
+  
+  ApiClient({this.baseUrl = apiBaseUrl, AuthService? authService,}) : _authService = authService ?? AuthService();
 
-  ApiClient({this.baseUrl = apiBaseUrl});
+  Future<Map<String, String>> _getHeaders() async {
+  final token = await _authService.getAccessToken();
+  
+  if (token == null) {
+      throw UnauthorizedException();
+  }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
 
-  Map<String, String> get _headers => {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $tempAuthToken',
-      };
+  void _checkResponseStatus(http.Response response) {
+    if (response.statusCode == 401) {
+      _authService.deleteTokens(); // Usuwamy tokeny z bezpiecznej pamięci
+      throw SessionExpiredException(); // Rzucamy błąd sesji
+    }
+  }
 
   Future<dynamic> get(String endpoint) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
       // Make the GET request and handle the response
-      final response = await http.get(url, headers: _headers);
+      final headers = await _getHeaders();
+      final response = await http.get(url, headers: headers);
+      
+      _checkResponseStatus(response);
+      
       if (response.statusCode >= 200 && response.statusCode < 300){
         return jsonDecode(response.body);
       }
@@ -48,7 +78,11 @@ class ApiClient {
     try {  
       final url = Uri.parse('$baseUrl$endpoint');
       // Make the POST request with JSON body and handle the response
-      final response = await http.post(url, headers: _headers, body: jsonEncode(body));
+      final headers = await _getHeaders();
+      final response = await http.post(url, headers: headers, body: jsonEncode(body));
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode >= 200 && response.statusCode < 300){
         return response.body.isNotEmpty ? jsonDecode(response.body) : null;
       }
@@ -68,7 +102,11 @@ class ApiClient {
   Future<void> delete(String endpoint) async {
     try {  
       final url = Uri.parse('$baseUrl$endpoint');
-      final response = await http.delete(url, headers: _headers);
+      final headers = await _getHeaders();
+      final response = await http.delete(url, headers: headers);
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException(
           'DELETE $endpoint failed',
@@ -87,11 +125,11 @@ class ApiClient {
   Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
-      final response = await http.put(
-        url,
-        headers: _headers,
-        body: jsonEncode(body),
-      );
+      final headers = await _getHeaders();
+      final response = await http.put(url, headers: headers,body: jsonEncode(body));
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return response.body.isNotEmpty ? jsonDecode(response.body) : null;
       }
@@ -107,5 +145,4 @@ class ApiClient {
       throw ApiException('Invalid response from server.');
     }
   }
-
 }
