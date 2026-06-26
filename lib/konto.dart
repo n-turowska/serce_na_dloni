@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../providers/pressure_provider.dart';
+import 'providers/auth_provider.dart';
 
 class Konto extends ConsumerStatefulWidget{
   
@@ -319,7 +320,7 @@ class _KontoState extends ConsumerState<Konto> {
             //GUZIK WYLOGUJ
             OutlinedButton.icon(
               onPressed: () {
-                Navigator.pushNamed(context, '/logowanie');
+                ref.read(authProvider.notifier).logout();
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text("Wyloguj się", style: TextStyle(color: Colors.red)),

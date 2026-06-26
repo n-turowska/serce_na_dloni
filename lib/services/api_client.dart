@@ -14,6 +14,16 @@ class ApiException implements Exception {
   String toString() => 'ApiException: $message (status: $statusCode)';
 }
 
+class UnauthorizedException implements Exception {
+  @override
+  String toString() => 'UnauthorizedException: Brak tokenu autoryzacyjnego.';
+}
+
+class SessionExpiredException implements Exception {
+  @override
+  String toString() => 'SessionExpiredException: Sesja wygasła. Zaloguj się ponownie.';
+}
+
 class ApiClient {
   final String baseUrl;
   final AuthService _authService;
@@ -22,10 +32,21 @@ class ApiClient {
 
   Future<Map<String, String>> _getHeaders() async {
   final token = await _authService.getAccessToken();
-  return {
-    'Content-Type': 'application/json',
-    if (token != null) 'Authorization': 'Bearer $token',
-  };
+  
+  if (token == null) {
+      throw UnauthorizedException();
+  }
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
+  void _checkResponseStatus(http.Response response) {
+    if (response.statusCode == 401) {
+      _authService.deleteTokens(); // Usuwamy tokeny z bezpiecznej pamięci
+      throw SessionExpiredException(); // Rzucamy błąd sesji
+    }
   }
 
   Future<dynamic> get(String endpoint) async {
@@ -34,6 +55,9 @@ class ApiClient {
       // Make the GET request and handle the response
       final headers = await _getHeaders();
       final response = await http.get(url, headers: headers);
+      
+      _checkResponseStatus(response);
+      
       if (response.statusCode >= 200 && response.statusCode < 300){
         return jsonDecode(response.body);
       }
@@ -55,7 +79,10 @@ class ApiClient {
       final url = Uri.parse('$baseUrl$endpoint');
       // Make the POST request with JSON body and handle the response
       final headers = await _getHeaders();
-      final response = await http.get(url, headers: headers);
+      final response = await http.post(url, headers: headers, body: jsonEncode(body));
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode >= 200 && response.statusCode < 300){
         return response.body.isNotEmpty ? jsonDecode(response.body) : null;
       }
@@ -76,7 +103,10 @@ class ApiClient {
     try {  
       final url = Uri.parse('$baseUrl$endpoint');
       final headers = await _getHeaders();
-      final response = await http.get(url, headers: headers);
+      final response = await http.delete(url, headers: headers);
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw ApiException(
           'DELETE $endpoint failed',
@@ -96,7 +126,10 @@ class ApiClient {
     try {
       final url = Uri.parse('$baseUrl$endpoint');
       final headers = await _getHeaders();
-      final response = await http.get(url, headers: headers);
+      final response = await http.put(url, headers: headers,body: jsonEncode(body));
+      
+      _checkResponseStatus(response);
+
       if (response.statusCode >= 200 && response.statusCode < 300) {
         return response.body.isNotEmpty ? jsonDecode(response.body) : null;
       }
@@ -112,5 +145,4 @@ class ApiClient {
       throw ApiException('Invalid response from server.');
     }
   }
-
 }
