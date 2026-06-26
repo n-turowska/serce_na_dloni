@@ -24,12 +24,6 @@ class _LogowanieState extends ConsumerState<Logowanie> {
     super.dispose();
   }
 
-  void _wejdzBezLogowania() {
-    // Przechodzimy do ekranu głównego i usuwamy ekran logowania z historii (pushReplacementNamed),
-    // dzięki czemu użytkownik po kliknięciu "wstecz" na ekranie głównym nie wróci do logowania.
-    Navigator.pushReplacementNamed(context, '/startowy');
-  }
-
   Future<void> _login() async {
   if (!_formKey.currentState!.validate()) return;
 
@@ -128,23 +122,8 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                             child: const Text('Zaloguj się przez API'),
                           ),
 
-                    const SizedBox(height: 8),
-
-                  // Przycisk Zaloguj (na razie po prostu wpuszcza dalej)
-                  FilledButton(
-                    onPressed: _wejdzBezLogowania,
-                    child: const Text('Zaloguj'),
-                  ),
-                  
                   const SizedBox(height: 8),
-                
-                  Text(
-                    '(Wersja testowa, kliknij Zaloguj bez podawania danych)',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                    textAlign: TextAlign.center,
-                  ),
-
-                  const SizedBox(height: 8),
+        
                     const Divider(),
                     const SizedBox(height: 8),
                     const Text(
