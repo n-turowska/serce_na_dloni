@@ -319,14 +319,13 @@ class _KontoState extends ConsumerState<Konto> {
             //GUZIK WYLOGUJ
             OutlinedButton.icon(
               onPressed: () {
-                // Miejsce na logikę wylogowania w przyszłości
-                print("Kliknięto: Wyloguj się");
+                Navigator.pushNamed(context, '/logowanie');
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text("Wyloguj się", style: TextStyle(color: Colors.red)),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14.0),
-                side: const BorderSide(color: Colors.red), // Czerwona ramka
+                side: const BorderSide(color: Colors.red),
               ), // styleFrom
             ),
 

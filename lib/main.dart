@@ -5,6 +5,7 @@ import 'startowy.dart';
 import 'pomiary.dart';
 import 'konto.dart';
 import 'logowanie.dart';
+import 'rejestracja.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       home: const Logowanie(),
       routes: {
         '/logowanie': (context) => const Logowanie(),
+        '/rejestracja': (context) => const Rejestracja(),
         '/startowy': (context) => const MyHomePage(),
         '/blog': (context) => const Blog(),
         '/pomiary': (context) => const Pomiary(),

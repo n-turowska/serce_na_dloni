@@ -71,17 +71,8 @@ class _LogowanieState extends ConsumerState<Logowanie> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
-
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-
                   child: Form(
                     key: _formKey,
 
@@ -148,18 +139,36 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                   const SizedBox(height: 8),
                 
                   Text(
-                    'Wersja testowa, kliknij Zaloguj bez podawania danych',
+                    '(Wersja testowa, kliknij Zaloguj bez podawania danych)',
                     style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     textAlign: TextAlign.center,
                   ),
+
+                  const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Nie masz jeszcze konta?',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/rejestracja');
+                      },
+                      icon: const Icon(Icons.person_add, color: Color(0xFF6750A4)),
+                      label: const Text(
+                        'Zarejestruj się',
+                        style: TextStyle(color: Color(0xFF6750A4), fontWeight: FontWeight.bold),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
         ),
       ),
-    ),
-    ),
     ),
     );
   }
