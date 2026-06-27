@@ -1,5 +1,5 @@
 ## Serce na Dłoni
-Aplikcja na telefony z systemami Android oraz iOS służąca do notowania wyników pomiarów ciśnienia.
+Aplikcja na telefony z systemami Android oraz iOS służąca do notowania wyników pomiarów ciśnienia. Witam tu Gabi.
 
 ## Główne funkcje
 * **Zapis pomiarów ciśnienia** - zarówno w czasie rzeczywistym jak i "wstecz".
