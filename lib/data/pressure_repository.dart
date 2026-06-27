@@ -7,12 +7,11 @@ class PressureRepository {
   final PressureApiService _apiService;
 
   PressureRepository({DatabaseHelper? dbHelper, PressureApiService? apiService})
-      : _dbHelper = dbHelper ?? DatabaseHelper.instance,
-        _apiService = apiService ?? PressureApiService();
-
+    : _dbHelper = dbHelper ?? DatabaseHelper.instance,
+      _apiService = apiService ?? PressureApiService();
 
   Future<List<PressureEntry>> getAllPressures() async {
-    try { 
+    try {
       final pressures = await _apiService.getPressures();
       return pressures;
     } catch (e) {
@@ -21,20 +20,35 @@ class PressureRepository {
       return maps.map((m) => PressureEntry.fromMap(m)).toList();
     }
   }
-  
-  Future<PressureEntry> addPressure(int systolic, int diastolic, String? note) async {
+
+  Future<PressureEntry> addPressure(
+    int systolic,
+    int diastolic,
+    String? note, {
+    DateTime? createdAt,
+  }) async {
     try {
-      final entry = await _apiService.createPressure(systolic, diastolic, note); 
-      await _dbHelper.insertPressure(entry.toMap()); 
+      final entry = await _apiService.createPressure(
+        systolic,
+        diastolic,
+        note,
+        createdAt: createdAt,
+      );
+      await _dbHelper.insertPressure(entry.toMap());
       return entry;
     } catch (e) {
       // API failed — save locally only
-      final entry = PressureEntry(systolic: systolic, diastolic: diastolic, note: note); 
+      final entry = PressureEntry(
+        systolic: systolic,
+        diastolic: diastolic,
+        note: note,
+        createdAt: createdAt,
+      );
       await _dbHelper.insertPressure(entry.toMap());
       return entry;
     }
   }
-  
+
   Future<void> deletePressure(String id) async {
     try {
       // Próba usunięcia z API
@@ -46,11 +60,17 @@ class PressureRepository {
       await _dbHelper.deletePressure(id);
     }
   }
-  
+
   Future<void> updatePressure(PressureEntry entry) async {
     try {
       // Próba aktualizacji w API
-      await _apiService.updatePressure(entry.id, entry.systolic, entry.diastolic, entry.note);
+      await _apiService.updatePressure(
+        entry.id,
+        entry.systolic,
+        entry.diastolic,
+        entry.note,
+        createdAt: entry.createdAt,
+      );
       // Jeśli się udało, aktualizujemy lokalną bazę danych
       await _dbHelper.updatePressure(entry.id, entry.toMap());
     } catch (e) {

@@ -8,8 +8,7 @@ import 'package:pdf/widgets.dart' as pw;
 import '../providers/pressure_provider.dart';
 import 'providers/auth_provider.dart';
 
-class Konto extends ConsumerStatefulWidget{
-  
+class Konto extends ConsumerStatefulWidget {
   const Konto({super.key});
 
   @override
@@ -21,7 +20,10 @@ class _KontoState extends ConsumerState<Konto> {
   DateTime? _dateTo;
 
   // funkcja wywołująca kalendarz
-  Future<DateTime?> _wyborDaty(BuildContext context, DateTime? initialDate) async {
+  Future<DateTime?> _wyborDaty(
+    BuildContext context,
+    DateTime? initialDate,
+  ) async {
     return await showDatePicker(
       context: context,
       initialDate: initialDate ?? DateTime.now(),
@@ -54,7 +56,9 @@ class _KontoState extends ConsumerState<Konto> {
             final formatDaty = DateFormat('dd-MM-yyyy');
 
             return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: const Text(
                 'Wybierz zakres pomiarów',
                 textAlign: TextAlign.center,
@@ -73,9 +77,18 @@ class _KontoState extends ConsumerState<Konto> {
 
                   // DATA OD
                   ListTile(
-                    title: const Text('Data od:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    title: const Text(
+                      'Data od:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     subtitle: Text(formatDaty.format(_dateFrom!)),
-                    trailing: const Icon(Icons.calendar_today, color: Color(0xFF6750A4)),
+                    trailing: const Icon(
+                      Icons.calendar_today,
+                      color: Color(0xFF6750A4),
+                    ),
                     shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.grey, width: 0.5),
                       borderRadius: BorderRadius.circular(8),
@@ -93,9 +106,18 @@ class _KontoState extends ConsumerState<Konto> {
 
                   // DATA DO
                   ListTile(
-                    title: const Text('Data do:', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                    title: const Text(
+                      'Data do:',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     subtitle: Text(formatDaty.format(_dateTo!)),
-                    trailing: const Icon(Icons.calendar_today, color: Color(0xFF6750A4)),
+                    trailing: const Icon(
+                      Icons.calendar_today,
+                      color: Color(0xFF6750A4),
+                    ),
                     shape: RoundedRectangleBorder(
                       side: const BorderSide(color: Colors.grey, width: 0.5),
                       borderRadius: BorderRadius.circular(8),
@@ -111,7 +133,12 @@ class _KontoState extends ConsumerState<Konto> {
                   ),
                 ],
               ),
-              actionsPadding: const EdgeInsets.only(left: 16, right: 16, bottom: 16, top: 8),
+              actionsPadding: const EdgeInsets.only(
+                left: 16,
+                right: 16,
+                bottom: 16,
+                top: 8,
+              ),
               actions: [
                 // WIELKI, FIOLETOWY PRZYCISK NA CAŁĄ SZEROKOŚĆ POD KALENDARZEM
                 SizedBox(
@@ -120,18 +147,23 @@ class _KontoState extends ConsumerState<Konto> {
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF6750A4), // Wasz fiolet
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: () {
                       Navigator.pop(ctx); // Zamykamy okienko
                       _pobierzPDF(_dateFrom!, _dateTo!); // Generujemy PDF
                     },
-                    child: const Text('Zatwierdź i pobierz PDF', style: TextStyle(fontSize: 16)),
+                    child: const Text(
+                      'Zatwierdź i pobierz PDF',
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 6),
-                
+
                 // przycisk anulowania na samym dole
                 SizedBox(
                   width: double.infinity,
@@ -139,7 +171,9 @@ class _KontoState extends ConsumerState<Konto> {
                   child: FilledButton(
                     style: FilledButton.styleFrom(
                       backgroundColor: const Color(0xFF6750A4),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                     onPressed: () => Navigator.pop(ctx),
                     child: const Text('Anuluj', style: TextStyle(fontSize: 16)),
@@ -154,11 +188,19 @@ class _KontoState extends ConsumerState<Konto> {
   }
 
   Future<void> _pobierzPDF(DateTime odDaty, DateTime doDaty) async {
-     final wszystkieWpisy = ref.read(pressureProvider);
+    final wszystkieWpisy = ref.read(pressureProvider);
 
-    final doDatyKoniecDnia = DateTime(doDaty.year, doDaty.month, doDaty.day, 23, 59, 59);
+    final doDatyKoniecDnia = DateTime(
+      doDaty.year,
+      doDaty.month,
+      doDaty.day,
+      23,
+      59,
+      59,
+    );
     final przefiltrowaneWpisy = wszystkieWpisy.where((wpis) {
-      return wpis.createdAt.isAfter(odDaty) && wpis.createdAt.isBefore(doDatyKoniecDnia);
+      return wpis.createdAt.isAfter(odDaty) &&
+          wpis.createdAt.isBefore(doDatyKoniecDnia);
     }).toList();
 
     przefiltrowaneWpisy.sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -166,7 +208,11 @@ class _KontoState extends ConsumerState<Konto> {
     if (przefiltrowaneWpisy.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Brak pomiarów w wybranym okresie! PDF nie został utworzony.')),
+          const SnackBar(
+            content: Text(
+              'Brak pomiarów w wybranym okresie! PDF nie został utworzony.',
+            ),
+          ),
         );
       }
       return;
@@ -186,23 +232,31 @@ class _KontoState extends ConsumerState<Konto> {
               children: [
                 pw.Text(
                   'Raport ciśnienia krwi',
-                  style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                  ),
                 ),
                 pw.SizedBox(height: 8),
                 pw.Text(
                   'Okres: ${DateFormat('dd-MM-yyyy').format(odDaty)} do ${DateFormat('yyyy-MM-dd').format(doDaty)}',
-                  style: const pw.TextStyle(fontSize: 14, color: PdfColors.grey700),
+                  style: const pw.TextStyle(
+                    fontSize: 14,
+                    color: PdfColors.grey700,
+                  ),
                 ),
                 pw.Divider(thickness: 2),
                 pw.SizedBox(height: 16),
-                
+
                 pw.ListView.builder(
                   itemCount: przefiltrowaneWpisy.length,
                   itemBuilder: (pw.Context context, int index) {
                     final wpis = przefiltrowaneWpisy[index];
-                    final dataStr = DateFormat('dd-MM-yyyy HH:mm').format(wpis.createdAt);
+                    final dataStr = DateFormat(
+                      'dd-MM-yyyy HH:mm',
+                    ).format(wpis.createdAt);
                     final notatkaStr = wpis.note ?? 'Brak notatki';
-                    
+
                     // [Data-Godzina Notatka Ciśnienie: systolic/diastolic]
                     return pw.Padding(
                       padding: const pw.EdgeInsets.symmetric(vertical: 4),
@@ -223,7 +277,7 @@ class _KontoState extends ConsumerState<Konto> {
     // zapisujemy plik do pliku Dokumenty w telefonie
     try {
       Directory? documentsDir;
-      
+
       if (Platform.isAndroid) {
         documentsDir = Directory('/storage/emulated/0/Download');
         if (!await documentsDir.exists()) {
@@ -233,7 +287,8 @@ class _KontoState extends ConsumerState<Konto> {
         documentsDir = await getApplicationDocumentsDirectory();
       }
 
-      final String nazwaPliku = 'raport_cisnienia_${DateTime.now().millisecondsSinceEpoch}.pdf';
+      final String nazwaPliku =
+          'raport_cisnienia_${DateTime.now().millisecondsSinceEpoch}.pdf';
       final File file = File('${documentsDir!.path}/$nazwaPliku');
 
       await file.writeAsBytes(await pdf.save());
@@ -248,15 +303,17 @@ class _KontoState extends ConsumerState<Konto> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Błąd zapisu pliku: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Błąd zapisu pliku: $e')));
       }
     }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
+    final profile = ref.watch(userProfileProvider);
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Konto"),
@@ -277,30 +334,52 @@ class _KontoState extends ConsumerState<Konto> {
                 borderRadius: BorderRadius.circular(12),
               ),
 
-              child: const Padding(
+              child: Padding(
                 padding: EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Twoje Dane",
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                      ), 
-                    ), 
+                      ),
+                    ),
 
-                    SizedBox(height: 12),
-                    Divider(), // pozioma kreska oddzielająca
-                    SizedBox(height: 12),
-                    Text("Imię: Jan", style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text("Nazwisko: Kowalski", style: TextStyle(fontSize: 16)),
-                    SizedBox(height: 8),
-                    Text("Wiek: 45 lat", style: TextStyle(fontSize: 16)),
+                    const SizedBox(height: 12),
+                    const Divider(), // pozioma kreska oddzielająca
+                    const SizedBox(height: 12),
+                    profile.when(
+                      data: (user) => Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Imię: ${user.firstName?.isNotEmpty == true ? user.firstName : 'brak danych'}",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Nazwisko: ${user.lastName?.isNotEmpty == true ? user.lastName : 'brak danych'}",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            "Email: ${user.email?.isNotEmpty == true ? user.email : 'brak danych'}",
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (_, __) => const Text(
+                        'Nie udało się wczytać danych użytkownika',
+                        style: TextStyle(fontSize: 16),
+                      ),
+                    ),
                   ],
                 ),
-             ),
+              ),
             ),
 
             const SizedBox(height: 12),
@@ -319,21 +398,24 @@ class _KontoState extends ConsumerState<Konto> {
 
             //GUZIK WYLOGUJ
             OutlinedButton.icon(
-              onPressed: () async{
+              onPressed: () async {
                 Navigator.of(context).popUntil((route) => route.isFirst);
                 await ref.read(authProvider.notifier).logout();
 
                 ref.invalidate(authProvider);
                 ref.invalidate(pressureProvider);
+                ref.invalidate(userProfileProvider);
               },
               icon: const Icon(Icons.logout, color: Colors.red),
-              label: const Text("Wyloguj się", style: TextStyle(color: Colors.red)),
+              label: const Text(
+                "Wyloguj się",
+                style: TextStyle(color: Colors.red),
+              ),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14.0),
                 side: const BorderSide(color: Colors.red),
               ), // styleFrom
             ),
-
           ],
         ),
       ),

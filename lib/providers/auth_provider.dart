@@ -28,10 +28,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> register(String email, String username, String password) async {
+  Future<void> register(
+    String email,
+    String firstName,
+    String lastName,
+    String password,
+  ) async {
     state = AuthState.loading;
     try {
-      await _authService.register(email, username, password);
+      await _authService.register(email, firstName, lastName, password);
       // po rejestracji od razu zaloguj
       await _authService.login(email, password);
       state = AuthState.authenticated;
@@ -53,4 +58,8 @@ final authServiceProvider = Provider<AuthService>((ref) {
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
   return AuthNotifier(ref.read(authServiceProvider));
+});
+
+final userProfileProvider = FutureProvider<UserProfile>((ref) {
+  return ref.read(authServiceProvider).getUserProfile();
 });

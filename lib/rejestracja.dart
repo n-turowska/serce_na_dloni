@@ -12,7 +12,7 @@ class Rejestracja extends ConsumerStatefulWidget {
 
 class _RejestracjaState extends ConsumerState<Rejestracja> {
   final _formKey = GlobalKey<FormState>();
-  
+
   // Kontrolery dla nowych pól tekstowych
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
@@ -34,9 +34,12 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
 
     setState(() => _isLoading = true);
     try {
-      await ref.read(authProvider.notifier).register(
+      await ref
+          .read(authProvider.notifier)
+          .register(
             _emailController.text.trim(),
-            _firstNameController.text.trim(), // Jako username przekazujemy imię
+            _firstNameController.text.trim(),
+            _lastNameController.text.trim(),
             _passwordController.text,
           );
 
@@ -48,9 +51,9 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
       }
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -83,9 +86,8 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                   children: [
                     Text(
                       'Dołącz do Serce na Dłoni',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
@@ -98,7 +100,8 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                         prefixIcon: Icon(Icons.badge),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Podaj swoje imię' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Podaj swoje imię' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -110,7 +113,8 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                         prefixIcon: Icon(Icons.badge_outlined),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Podaj swoje nazwisko' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Podaj swoje nazwisko' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -123,7 +127,8 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                         prefixIcon: Icon(Icons.email),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) => value!.isEmpty ? 'Podaj adres email' : null,
+                      validator: (value) =>
+                          value!.isEmpty ? 'Podaj adres email' : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -148,19 +153,27 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                     SizedBox(
                       height: 50,
                       child: _isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : FilledButton(
-                         style: FilledButton.styleFrom(backgroundColor: const Color(0xFF6750A4)),
-                         onPressed: _uruchomRejestracje,
-                         child: const Text('Załóż konto i zaloguj się', style: TextStyle(fontSize: 16)),
-                       ),
+                          ? const Center(child: CircularProgressIndicator())
+                          : FilledButton(
+                              style: FilledButton.styleFrom(
+                                backgroundColor: const Color(0xFF6750A4),
+                              ),
+                              onPressed: _uruchomRejestracje,
+                              child: const Text(
+                                'Załóż konto i zaloguj się',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 12),
-                    
+
                     // Powrót do logowania
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Masz już konto? Zaloguj się', style: TextStyle(color: Colors.grey)),
+                      child: const Text(
+                        'Masz już konto? Zaloguj się',
+                        style: TextStyle(color: Colors.grey),
+                      ),
                     ),
                   ],
                 ),
