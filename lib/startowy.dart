@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'pomiary.dart';
 import '../providers/pressure_provider.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
@@ -94,6 +95,17 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                     vertical: 4,
                   ),
                   child: ListTile(
+                    onTap: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Pomiary(initialEntry: entry),
+                        ),
+                      );
+                      if (context.mounted) {
+                        ref.read(pressureProvider.notifier).loadPressures();
+                      }
+                    },
                     leading: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,

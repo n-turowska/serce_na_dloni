@@ -47,15 +47,21 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
     state = state.where((e) => e.id != id).toList();
   }
 
-  void updatePressure(
+  Future<void> updatePressure(
     String id,
     int systolic,
     int diastolic,
     String? note,
+    DateTime createdAt,
   ) async {
-    final updated = state
-        .firstWhere((e) => e.id == id)
-        .copyWith(systolic: systolic, diastolic: diastolic, note: note);
+    final current = state.firstWhere((e) => e.id == id);
+    final updated = PressureEntry(
+      id: current.id,
+      systolic: systolic,
+      diastolic: diastolic,
+      note: note,
+      createdAt: createdAt,
+    );
     await _repository.updatePressure(updated);
     state = _sortNewestFirst(
       state.map((e) => e.id == id ? updated : e).toList(),

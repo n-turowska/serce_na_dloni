@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../models/pressure_entry.dart';
 import '../providers/pressure_provider.dart';
 
 class Pomiary extends ConsumerStatefulWidget {
-  const Pomiary({super.key});
+  const Pomiary({super.key, this.initialEntry});
+
+  final PressureEntry? initialEntry;
 
   @override
   ConsumerState<Pomiary> createState() => _PomiaryState();
@@ -17,6 +20,23 @@ class _PomiaryState extends ConsumerState<Pomiary> {
   final _dateController = TextEditingController();
 
   DateTime? _selectedDateTime; // zmienna przechowująca wybraną datę wstecz
+  bool get _isEditing => widget.initialEntry != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    final entry = widget.initialEntry;
+    if (entry != null) {
+      _systolicController.text = entry.systolic.toString();
+      _diastolicController.text = entry.diastolic.toString();
+      _noteController.text = entry.note ?? '';
+      _selectedDateTime = entry.createdAt;
+      _dateController.text = DateFormat(
+        'dd-MM-yyyy – HH:mm',
+      ).format(entry.createdAt);
+    }
+  }
 
   @override
   void dispose() {
@@ -30,9 +50,10 @@ class _PomiaryState extends ConsumerState<Pomiary> {
   // Funkcja otwierająca systemowy kalendarz
   Future<void> _pickDateTime() async {
     final now = DateTime.now();
+    final initialDateTime = _selectedDateTime ?? now;
     final pickedDate = await showDatePicker(
       context: context,
-      initialDate: now,
+      initialDate: initialDateTime.isAfter(now) ? now : initialDateTime,
       firstDate: DateTime(2000), // najstarsza możliwa data do wybrania
       lastDate: now, // blokujemy wybieranie dat z przyszłości
     );
@@ -41,12 +62,11 @@ class _PomiaryState extends ConsumerState<Pomiary> {
     if (!mounted) return;
     final pickedTime = await showTimePicker(
       context: context,
-      initialTime: TimeOfDay.now(),
+      initialTime: TimeOfDay.fromDateTime(initialDateTime),
     );
 
-    if (pickedTime == null) return; // Jeśli użytkownik zamknął zegarek
+    if (pickedTime == null) return;
 
-    // 3. Połączenie dnia i godziny w jeden obiekt DateTime
     final fullDateTime = DateTime(
       pickedDate.year,
       pickedDate.month,
@@ -57,7 +77,6 @@ class _PomiaryState extends ConsumerState<Pomiary> {
 
     setState(() {
       _selectedDateTime = fullDateTime;
-      // Wyświetlamy użytkownikowi ładny, pełny format: Data + Godzina
       _dateController.text = DateFormat(
         'dd-MM-yyyy – HH:mm',
       ).format(fullDateTime);
@@ -67,8 +86,10 @@ class _PomiaryState extends ConsumerState<Pomiary> {
   Future<void> _submitPressure() async {
     final systolic = int.tryParse(_systolicController.text) ?? 0;
     final diastolic = int.tryParse(_diastolicController.text) ?? 0;
+    final note = _noteController.text.trim().isEmpty
+        ? null
+        : _noteController.text.trim();
 
-    // Prosta walidacja, żeby użytkownik nie wpisał bzdur
     if (systolic <= 0 || diastolic <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -79,14 +100,25 @@ class _PomiaryState extends ConsumerState<Pomiary> {
     }
 
     try {
-      await ref
-          .read(pressureProvider.notifier)
-          .addPressure(
-            systolic,
-            diastolic,
-            _noteController.text.isEmpty ? null : _noteController.text,
-            createdAt: _selectedDateTime,
-          );
+      final notifier = ref.read(pressureProvider.notifier);
+      final entry = widget.initialEntry;
+
+      if (entry == null) {
+        await notifier.addPressure(
+          systolic,
+          diastolic,
+          note,
+          createdAt: _selectedDateTime,
+        );
+      } else {
+        await notifier.updatePressure(
+          entry.id,
+          systolic,
+          diastolic,
+          note,
+          _selectedDateTime ?? entry.createdAt,
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -99,9 +131,15 @@ class _PomiaryState extends ConsumerState<Pomiary> {
     }
 
     if (mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Pomiar został zapisany')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isEditing
+                ? 'Pomiar został zaktualizowany'
+                : 'Pomiar został zapisany',
+          ),
+        ),
+      );
       Navigator.pop(context);
     }
   }
@@ -110,7 +148,7 @@ class _PomiaryState extends ConsumerState<Pomiary> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Dodaj pomiar"),
+        title: Text(_isEditing ? "Edytuj pomiar" : "Dodaj pomiar"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
@@ -205,11 +243,13 @@ class _PomiaryState extends ConsumerState<Pomiary> {
               readOnly: true, //wymuszamy kliknięcie
               onTap: _pickDateTime,
               decoration: InputDecoration(
-                labelText: 'Data pomiaru (domyślnie Teraz)',
+                labelText: _isEditing
+                    ? 'Data pomiaru'
+                    : 'Data pomiaru (domyślnie Teraz)',
                 prefixIcon: const Icon(Icons.calendar_today),
                 border: const OutlineInputBorder(),
                 // Dodajemy przycisk "X", aby wyczyścić datę i wrócić do "teraz"
-                suffixIcon: _selectedDateTime != null
+                suffixIcon: !_isEditing && _selectedDateTime != null
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
@@ -240,7 +280,7 @@ class _PomiaryState extends ConsumerState<Pomiary> {
             FilledButton.icon(
               onPressed: () => _submitPressure(),
               icon: const Icon(Icons.check),
-              label: const Text('Zapisz pomiar'),
+              label: Text(_isEditing ? 'Zapisz zmiany' : 'Zapisz pomiar'),
             ),
           ],
         ),
