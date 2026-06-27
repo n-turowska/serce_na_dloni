@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -273,7 +274,15 @@ class _KontoState extends ConsumerState<Konto> {
 
   Future<void> _pobierzPDF(DateTime odDaty, DateTime doDaty) async {
     final wszystkieWpisy = ref.read(pressureProvider);
+    final user = await ref.read(userProfileProvider.future);
+    final regularFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Arial.ttf'),
+    );
+    final boldFont = pw.Font.ttf(
+      await rootBundle.load('assets/fonts/Arial-Bold.ttf'),
+    );
 
+    final odDatyPoczatekDnia = DateTime(odDaty.year, odDaty.month, odDaty.day);
     final doDatyKoniecDnia = DateTime(
       doDaty.year,
       doDaty.month,
@@ -283,7 +292,7 @@ class _KontoState extends ConsumerState<Konto> {
       59,
     );
     final przefiltrowaneWpisy = wszystkieWpisy.where((wpis) {
-      return wpis.createdAt.isAfter(odDaty) &&
+      return !wpis.createdAt.isBefore(odDatyPoczatekDnia) &&
           wpis.createdAt.isBefore(doDatyKoniecDnia);
     }).toList();
 
@@ -302,58 +311,91 @@ class _KontoState extends ConsumerState<Konto> {
       return;
     }
 
-    // budujemy plik PDF
-    final pdf = pw.Document();
+    final formatDaty = DateFormat('dd/MM/yyyy');
+    final formatGodziny = DateFormat('HH:mm');
+    final imie = user.firstName?.trim() ?? '';
+    final nazwisko = user.lastName?.trim() ?? '';
+    final uzytkownik = [
+      if (nazwisko.isNotEmpty) nazwisko,
+      if (imie.isNotEmpty) imie,
+    ].join(', ');
+    final podpisUzytkownika = uzytkownik.isNotEmpty
+        ? uzytkownik
+        : (user.email?.trim().isNotEmpty == true ? user.email!.trim() : '-');
+
+    final pdf = pw.Document(
+      theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
+    );
 
     pdf.addPage(
-      pw.Page(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.only(
+          left: 64,
+          right: 56,
+          top: 60,
+          bottom: 48,
+        ),
         build: (pw.Context ctx) {
-          return pw.Padding(
-            padding: const pw.EdgeInsets.all(24),
-            child: pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
-              children: [
-                pw.Text(
-                  'Raport ciśnienia krwi',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                  ),
-                ),
-                pw.SizedBox(height: 8),
-                pw.Text(
-                  'Okres: ${DateFormat('dd-MM-yyyy').format(odDaty)} do ${DateFormat('yyyy-MM-dd').format(doDaty)}',
-                  style: const pw.TextStyle(
-                    fontSize: 14,
-                    color: PdfColors.grey700,
-                  ),
-                ),
-                pw.Divider(thickness: 2),
-                pw.SizedBox(height: 16),
-
-                pw.ListView.builder(
-                  itemCount: przefiltrowaneWpisy.length,
-                  itemBuilder: (pw.Context context, int index) {
-                    final wpis = przefiltrowaneWpisy[index];
-                    final dataStr = DateFormat(
-                      'dd-MM-yyyy HH:mm',
-                    ).format(wpis.createdAt);
-                    final notatkaStr = wpis.note ?? 'Brak notatki';
-
-                    // [Data-Godzina Notatka Ciśnienie: systolic/diastolic]
-                    return pw.Padding(
-                      padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                      child: pw.Text(
-                        '$dataStr $notatkaStr, Ciśnienie: ${wpis.systolic}/${wpis.diastolic}',
-                        style: const pw.TextStyle(fontSize: 12),
-                      ),
-                    );
-                  },
-                ),
-              ],
+          return [
+            pw.Text(
+              'Raport pomiarów ciśnienia',
+              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
             ),
-          );
+            pw.SizedBox(height: 14),
+            pw.Text(
+              'Użytkownik: $podpisUzytkownika',
+              style: const pw.TextStyle(fontSize: 11),
+            ),
+            pw.SizedBox(height: 14),
+            pw.Text(
+              'Zakres dat: ${formatDaty.format(odDaty)} do ${formatDaty.format(doDaty)}',
+              style: const pw.TextStyle(fontSize: 11),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Divider(thickness: 1, color: PdfColors.black),
+            pw.SizedBox(height: 8),
+            pw.TableHelper.fromTextArray(
+              headers: [
+                'Data pomiaru',
+                'Godzina pomiaru',
+                'Wynik pomiaru',
+                'Notatka',
+              ],
+              data: przefiltrowaneWpisy.map((wpis) {
+                return [
+                  formatDaty.format(wpis.createdAt),
+                  formatGodziny.format(wpis.createdAt),
+                  '${wpis.systolic}/${wpis.diastolic}',
+                  wpis.note?.trim().isNotEmpty == true
+                      ? wpis.note!.trim()
+                      : '-',
+                ];
+              }).toList(),
+              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
+              cellAlignment: pw.Alignment.center,
+              cellAlignments: const {3: pw.Alignment.centerLeft},
+              headerStyle: pw.TextStyle(
+                fontSize: 10,
+                fontWeight: pw.FontWeight.bold,
+              ),
+              cellStyle: const pw.TextStyle(fontSize: 10),
+              headerPadding: const pw.EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 3,
+              ),
+              cellPadding: const pw.EdgeInsets.symmetric(
+                horizontal: 4,
+                vertical: 3,
+              ),
+              columnWidths: const {
+                0: pw.FlexColumnWidth(1.15),
+                1: pw.FlexColumnWidth(1.15),
+                2: pw.FlexColumnWidth(1.15),
+                3: pw.FlexColumnWidth(1.15),
+              },
+            ),
+          ];
         },
       ),
     );
@@ -449,9 +491,9 @@ class _KontoState extends ConsumerState<Konto> {
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     const Divider(), // pozioma kreska oddzielająca
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
                     profile.when(
                       data: (user) => Column(
@@ -481,9 +523,9 @@ class _KontoState extends ConsumerState<Konto> {
                       ),
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     const Divider(), // pozioma kreska oddzielająca
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
                     Row(
                       children: [
@@ -651,7 +693,7 @@ class _PressureRangeStatsCard extends StatelessWidget {
                   children: [
                     _PressureLegendRow(
                       color: _lowColor,
-                      label: 'Za niskie',
+                      label: 'Niskie',
                       range: 'poniżej 90/60 mmHg',
                       count: stats.low,
                       total: stats.total,

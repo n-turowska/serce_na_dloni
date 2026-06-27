@@ -76,6 +76,8 @@ flutter:
      - wpisy/artykul3.txt
      - wpisy/artykul4.txt
      - wpisy/artykul5.txt
+     - assets/fonts/Arial.ttf
+     - assets/fonts/Arial-Bold.ttf
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
