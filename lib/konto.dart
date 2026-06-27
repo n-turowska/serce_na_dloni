@@ -1,15 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import '../providers/pressure_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
+import 'services/pressure_pdf_service.dart';
 
 class Konto extends ConsumerStatefulWidget {
   const Konto({super.key});
@@ -128,7 +124,7 @@ class _KontoState extends ConsumerState<Konto> {
     );
   }
 
-  void _wyborZakresu(BuildContext context) {
+  void _wyborZakresu(BuildContext context, _PdfExportType exportType) {
     // Resetujemy daty przed otwarciem okienka, żeby startowało od czysta lub domyślnych wartości
     _dateFrom = DateTime.now().subtract(const Duration(days: 7));
     _dateTo = DateTime.now();
@@ -237,11 +233,11 @@ class _KontoState extends ConsumerState<Konto> {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.pop(ctx); // Zamykamy okienko
-                      _pobierzPDF(_dateFrom!, _dateTo!); // Generujemy PDF
+                      Navigator.pop(ctx);
+                      _pobierzPDF(_dateFrom!, _dateTo!, exportType);
                     },
-                    child: const Text(
-                      'Zatwierdź i pobierz PDF',
+                    child: Text(
+                      exportType.confirmButtonText,
                       style: TextStyle(fontSize: 16),
                     ),
                   ),
@@ -272,158 +268,48 @@ class _KontoState extends ConsumerState<Konto> {
     );
   }
 
-  Future<void> _pobierzPDF(DateTime odDaty, DateTime doDaty) async {
+  Future<void> _pobierzPDF(
+    DateTime odDaty,
+    DateTime doDaty,
+    _PdfExportType exportType,
+  ) async {
     final wszystkieWpisy = ref.read(pressureProvider);
     final user = await ref.read(userProfileProvider.future);
-    final regularFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Arial.ttf'),
-    );
-    final boldFont = pw.Font.ttf(
-      await rootBundle.load('assets/fonts/Arial-Bold.ttf'),
-    );
+    final pdfService = PressurePdfService();
 
-    final odDatyPoczatekDnia = DateTime(odDaty.year, odDaty.month, odDaty.day);
-    final doDatyKoniecDnia = DateTime(
-      doDaty.year,
-      doDaty.month,
-      doDaty.day,
-      23,
-      59,
-      59,
-    );
-    final przefiltrowaneWpisy = wszystkieWpisy.where((wpis) {
-      return !wpis.createdAt.isBefore(odDatyPoczatekDnia) &&
-          wpis.createdAt.isBefore(doDatyKoniecDnia);
-    }).toList();
-
-    przefiltrowaneWpisy.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-
-    if (przefiltrowaneWpisy.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Brak pomiarów w wybranym okresie! PDF nie został utworzony.',
-            ),
-          ),
-        );
-      }
-      return;
-    }
-
-    final formatDaty = DateFormat('dd/MM/yyyy');
-    final formatGodziny = DateFormat('HH:mm');
-    final imie = user.firstName?.trim() ?? '';
-    final nazwisko = user.lastName?.trim() ?? '';
-    final uzytkownik = [
-      if (nazwisko.isNotEmpty) nazwisko,
-      if (imie.isNotEmpty) imie,
-    ].join(', ');
-    final podpisUzytkownika = uzytkownik.isNotEmpty
-        ? uzytkownik
-        : (user.email?.trim().isNotEmpty == true ? user.email!.trim() : '-');
-
-    final pdf = pw.Document(
-      theme: pw.ThemeData.withFont(base: regularFont, bold: boldFont),
-    );
-
-    pdf.addPage(
-      pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.only(
-          left: 64,
-          right: 56,
-          top: 60,
-          bottom: 48,
-        ),
-        build: (pw.Context ctx) {
-          return [
-            pw.Text(
-              'Raport pomiarów ciśnienia',
-              style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.SizedBox(height: 14),
-            pw.Text(
-              'Użytkownik: $podpisUzytkownika',
-              style: const pw.TextStyle(fontSize: 11),
-            ),
-            pw.SizedBox(height: 14),
-            pw.Text(
-              'Zakres dat: ${formatDaty.format(odDaty)} do ${formatDaty.format(doDaty)}',
-              style: const pw.TextStyle(fontSize: 11),
-            ),
-            pw.SizedBox(height: 6),
-            pw.Divider(thickness: 1, color: PdfColors.black),
-            pw.SizedBox(height: 8),
-            pw.TableHelper.fromTextArray(
-              headers: [
-                'Data pomiaru',
-                'Godzina pomiaru',
-                'Wynik pomiaru',
-                'Notatka',
-              ],
-              data: przefiltrowaneWpisy.map((wpis) {
-                return [
-                  formatDaty.format(wpis.createdAt),
-                  formatGodziny.format(wpis.createdAt),
-                  '${wpis.systolic}/${wpis.diastolic}',
-                  wpis.note?.trim().isNotEmpty == true
-                      ? wpis.note!.trim()
-                      : '-',
-                ];
-              }).toList(),
-              border: pw.TableBorder.all(color: PdfColors.black, width: 0.6),
-              cellAlignment: pw.Alignment.center,
-              cellAlignments: const {3: pw.Alignment.centerLeft},
-              headerStyle: pw.TextStyle(
-                fontSize: 10,
-                fontWeight: pw.FontWeight.bold,
-              ),
-              cellStyle: const pw.TextStyle(fontSize: 10),
-              headerPadding: const pw.EdgeInsets.symmetric(
-                horizontal: 4,
-                vertical: 3,
-              ),
-              cellPadding: const pw.EdgeInsets.symmetric(
-                horizontal: 4,
-                vertical: 3,
-              ),
-              columnWidths: const {
-                0: pw.FlexColumnWidth(1.15),
-                1: pw.FlexColumnWidth(1.15),
-                2: pw.FlexColumnWidth(1.15),
-                3: pw.FlexColumnWidth(1.15),
-              },
-            ),
-          ];
-        },
-      ),
-    );
-
-    // zapisujemy plik do pliku Dokumenty w telefonie
     try {
-      Directory? documentsDir;
-
-      if (Platform.isAndroid) {
-        documentsDir = Directory('/storage/emulated/0/Download');
-        if (!await documentsDir.exists()) {
-          documentsDir = await getExternalStorageDirectory(); // fallback
-        }
-      } else if (Platform.isIOS) {
-        documentsDir = await getApplicationDocumentsDirectory();
+      switch (exportType) {
+        case _PdfExportType.table:
+          await pdfService.saveMeasurementsReport(
+            entries: wszystkieWpisy,
+            user: user,
+            dateFrom: odDaty,
+            dateTo: doDaty,
+          );
+        case _PdfExportType.chart:
+          await pdfService.saveChartReport(
+            entries: wszystkieWpisy,
+            user: user,
+            dateFrom: odDaty,
+            dateTo: doDaty,
+          );
       }
-
-      final String nazwaPliku =
-          'raport_cisnienia_${DateTime.now().millisecondsSinceEpoch}.pdf';
-      final File file = File('${documentsDir!.path}/$nazwaPliku');
-
-      await file.writeAsBytes(await pdf.save());
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Plik PDF został zapisany do folderu Pobrane'),
             duration: Duration(seconds: 4),
+          ),
+        );
+      }
+    } on PressurePdfEmptyRangeException {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Brak pomiarów w wybranym okresie! PDF nie został utworzony.',
+            ),
           ),
         );
       }
@@ -561,9 +447,20 @@ class _KontoState extends ConsumerState<Konto> {
 
             // GUZIK POBIERZ SWOJE DANE
             ElevatedButton.icon(
-              onPressed: () => _wyborZakresu(context),
+              onPressed: () => _wyborZakresu(context, _PdfExportType.table),
               icon: const Icon(Icons.picture_as_pdf),
               label: const Text("Pobierz pomiary ciśnienia (PDF)"),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14.0),
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            ElevatedButton.icon(
+              onPressed: () => _wyborZakresu(context, _PdfExportType.chart),
+              icon: const Icon(Icons.show_chart),
+              label: const Text("Pobierz wykres ciśnienia (PDF)"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14.0),
               ),
@@ -595,6 +492,15 @@ class _KontoState extends ConsumerState<Konto> {
       ),
     );
   }
+}
+
+enum _PdfExportType {
+  table('Zatwierdź i pobierz PDF'),
+  chart('Zatwierdź i pobierz wykres');
+
+  const _PdfExportType(this.confirmButtonText);
+
+  final String confirmButtonText;
 }
 
 enum _PressureRange { low, normal, high }
