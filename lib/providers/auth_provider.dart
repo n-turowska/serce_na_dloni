@@ -61,5 +61,10 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
 });
 
 final userProfileProvider = FutureProvider<UserProfile>((ref) {
+  final authState = ref.watch(authProvider);
+  if (authState != AuthState.authenticated) {
+    return const UserProfile();
+  }
+
   return ref.read(authServiceProvider).getUserProfile();
 });

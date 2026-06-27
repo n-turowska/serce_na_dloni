@@ -69,6 +69,7 @@ class AuthService {
   }) async {
     final normalizedEmail = _normalizeEmail(email);
     await _storage.write(key: _currentEmailKey, value: normalizedEmail);
+    await _storage.write(key: _emailKey, value: normalizedEmail);
     await _storage.write(
       key: _profileFirstNameKey(normalizedEmail),
       value: firstName,
@@ -135,6 +136,7 @@ class AuthService {
         key: _currentEmailKey,
         value: _normalizeEmail(email),
       );
+      await _storage.write(key: _emailKey, value: _normalizeEmail(email));
     } else if (response.statusCode == 401) {
       throw AuthException('Niepoprawny login lub hasło.');
     } else {
