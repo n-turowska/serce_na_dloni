@@ -3,8 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import '../providers/pressure_provider.dart';
 
-class Pomiary extends ConsumerStatefulWidget{
-  
+class Pomiary extends ConsumerStatefulWidget {
   const Pomiary({super.key});
 
   @override
@@ -24,7 +23,7 @@ class _PomiaryState extends ConsumerState<Pomiary> {
     _systolicController.dispose();
     _diastolicController.dispose();
     _noteController.dispose();
-    _dateController.dispose;
+    _dateController.dispose();
     super.dispose();
   }
 
@@ -59,37 +58,56 @@ class _PomiaryState extends ConsumerState<Pomiary> {
     setState(() {
       _selectedDateTime = fullDateTime;
       // Wyświetlamy użytkownikowi ładny, pełny format: Data + Godzina
-      _dateController.text = DateFormat('dd-MM-yyyy – HH:mm').format(fullDateTime);
+      _dateController.text = DateFormat(
+        'dd-MM-yyyy – HH:mm',
+      ).format(fullDateTime);
     });
   }
 
-  void _submitPressure() {
+  Future<void> _submitPressure() async {
     final systolic = int.tryParse(_systolicController.text) ?? 0;
     final diastolic = int.tryParse(_diastolicController.text) ?? 0;
 
     // Prosta walidacja, żeby użytkownik nie wpisał bzdur
     if (systolic <= 0 || diastolic <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Proszę podać poprawne wartości ciśnienia!')),
+        const SnackBar(
+          content: Text('Proszę podać poprawne wartości ciśnienia!'),
+        ),
       );
       return;
     }
 
-    ref.read(pressureProvider.notifier).addPressure(
-      systolic,
-      diastolic,
-      _noteController.text.isEmpty ? null : _noteController.text,
-      createdAt: _selectedDateTime,
-    );
+    try {
+      await ref
+          .read(pressureProvider.notifier)
+          .addPressure(
+            systolic,
+            diastolic,
+            _noteController.text.isEmpty ? null : _noteController.text,
+            createdAt: _selectedDateTime,
+          );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Nie udało się zapisać pomiaru. Spróbuj ponownie.'),
+          ),
+        );
+      }
+      return;
+    }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Pomiar został zapisany')),
-    );
-    Navigator.pop(context);
+    if (mounted) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Pomiar został zapisany')));
+      Navigator.pop(context);
+    }
   }
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Dodaj pomiar"),
@@ -108,59 +126,76 @@ class _PomiaryState extends ConsumerState<Pomiary> {
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 20.0,
+                  horizontal: 16.0,
+                ),
                 child: Column(
                   children: [
                     Text(
                       'Podaj wyniki pomiaru ciśnienia:\n skurczowe / rozkurczowe',
                       style: Theme.of(context).textTheme.headlineSmall,
-                     textAlign: TextAlign.center,
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 18),
 
                     Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        width: 90,
-                        child: TextField(
-                          controller: _systolicController,
-                          keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                          decoration: const InputDecoration(
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          border: OutlineInputBorder(),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          width: 90,
+                          child: TextField(
+                            controller: _systolicController,
+                            keyboardType: TextInputType
+                                .number, // Tylko klawiatura numeryczna
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            decoration: const InputDecoration(
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
 
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Text(
-                        '/',
-                        style: TextStyle(fontSize: 36, color: Colors.grey, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-
-                    SizedBox(
-                      width: 90,
-                      child: TextField(
-                        controller: _diastolicController,
-                        keyboardType: TextInputType.number, // Tylko klawiatura numeryczna
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                        decoration: const InputDecoration(
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                          border: OutlineInputBorder(),
+                        const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16.0),
+                          child: Text(
+                            '/',
+                            style: TextStyle(
+                              fontSize: 36,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+
+                        SizedBox(
+                          width: 90,
+                          child: TextField(
+                            controller: _diastolicController,
+                            keyboardType: TextInputType
+                                .number, // Tylko klawiatura numeryczna
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            decoration: const InputDecoration(
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
               ),
-            ),
             ),
 
             const SizedBox(height: 24),
@@ -174,7 +209,7 @@ class _PomiaryState extends ConsumerState<Pomiary> {
                 prefixIcon: const Icon(Icons.calendar_today),
                 border: const OutlineInputBorder(),
                 // Dodajemy przycisk "X", aby wyczyścić datę i wrócić do "teraz"
-                suffixIcon: _selectedDateTime != null 
+                suffixIcon: _selectedDateTime != null
                     ? IconButton(
                         icon: const Icon(Icons.clear),
                         onPressed: () {
@@ -203,7 +238,7 @@ class _PomiaryState extends ConsumerState<Pomiary> {
             const SizedBox(height: 24),
 
             FilledButton.icon(
-              onPressed: _submitPressure,
+              onPressed: () => _submitPressure(),
               icon: const Icon(Icons.check),
               label: const Text('Zapisz pomiar'),
             ),

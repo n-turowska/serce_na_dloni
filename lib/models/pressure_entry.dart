@@ -13,8 +13,8 @@ class PressureEntry {
     required this.diastolic,
     this.note,
     DateTime? createdAt,
-  })  : id = id ?? const Uuid().v4(),
-        createdAt = createdAt ?? DateTime.now();
+  }) : id = id ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now();
 
   PressureEntry copyWith({
     String? id,
@@ -33,7 +33,7 @@ class PressureEntry {
   }
 
   Map<String, dynamic> toMap() {
-    return{
+    return {
       'id': id,
       'systolic': systolic,
       'diastolic': diastolic,
@@ -41,7 +41,7 @@ class PressureEntry {
       'created_at': createdAt.toIso8601String(),
     };
   }
-  
+
   factory PressureEntry.fromMap(Map<String, dynamic> map) {
     return PressureEntry(
       id: map['id'] as String,
@@ -52,22 +52,24 @@ class PressureEntry {
     );
   }
 
-    Map<String, dynamic> toJson() {
+  Map<String, dynamic> toJson() {
     return {
-      'systolic' : systolic,
-      'diastolic' : diastolic,
-      'note' : note,
+      'id': id,
+      'systolic': systolic,
+      'diastolic': diastolic,
+      'note': note,
+      'created_at': createdAt.toIso8601String(),
     };
   }
-  
+
   factory PressureEntry.fromJson(Map<String, dynamic> json) {
     return PressureEntry(
-      id: ['id'].toString(),
+      id: json['id'].toString(),
       systolic: json['systolic'] as int,
       diastolic: json['diastolic'] as int,
       note: json['note'] as String?,
-      createdAt: DateTime.parse(json['created_at'] as String)
-    ); // Replace with actual implementation
+      createdAt: DateTime.parse(json['created_at'] as String),
+    );
   }
 
   @override
