@@ -8,10 +8,14 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
     loadPressures();
   }
 
+  List<PressureEntry> _sortNewestFirst(List<PressureEntry> entries) {
+    return [...entries]..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+  }
+
   Future<void> loadPressures() async {
     try {
       final entries = await _repository.getAllPressures();
-      state = entries;
+      state = _sortNewestFirst(entries);
     } catch (e) {
       state = [];
     }
@@ -31,9 +35,10 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
         createdAt: createdAt,
       );
 
-      state = [savedEntry, ...state];
+      state = _sortNewestFirst([savedEntry, ...state]);
     } catch (e) {
       await loadPressures();
+      rethrow;
     }
   }
 
@@ -52,7 +57,9 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
         .firstWhere((e) => e.id == id)
         .copyWith(systolic: systolic, diastolic: diastolic, note: note);
     await _repository.updatePressure(updated);
-    state = state.map((e) => e.id == id ? updated : e).toList();
+    state = _sortNewestFirst(
+      state.map((e) => e.id == id ? updated : e).toList(),
+    );
   }
 }
 

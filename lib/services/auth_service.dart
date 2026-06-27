@@ -23,9 +23,18 @@ class AuthService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
+  static const _currentEmailKey = 'current_email';
   static const _firstNameKey = 'first_name';
   static const _lastNameKey = 'last_name';
   static const _emailKey = 'email';
+
+  String _normalizeEmail(String email) => email.trim().toLowerCase();
+
+  String _profileFirstNameKey(String email) =>
+      'profile_${_normalizeEmail(email)}_first_name';
+
+  String _profileLastNameKey(String email) =>
+      'profile_${_normalizeEmail(email)}_last_name';
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
     await _storage.write(key: _accessTokenKey, value: accessToken);
@@ -40,9 +49,17 @@ class AuthService {
     return await _storage.read(key: _refreshTokenKey);
   }
 
+  Future<String?> getCurrentEmail() async {
+    return await _storage.read(key: _currentEmailKey);
+  }
+
   Future<void> deleteTokens() async {
     await _storage.delete(key: _accessTokenKey);
     await _storage.delete(key: _refreshTokenKey);
+    await _storage.delete(key: _currentEmailKey);
+    await _storage.delete(key: _emailKey);
+    await _storage.delete(key: _firstNameKey);
+    await _storage.delete(key: _lastNameKey);
   }
 
   Future<void> saveUserProfile({
@@ -50,25 +67,52 @@ class AuthService {
     required String lastName,
     required String email,
   }) async {
-    await _storage.write(key: _firstNameKey, value: firstName);
-    await _storage.write(key: _lastNameKey, value: lastName);
-    await _storage.write(key: _emailKey, value: email);
+    final normalizedEmail = _normalizeEmail(email);
+    await _storage.write(key: _currentEmailKey, value: normalizedEmail);
+    await _storage.write(
+      key: _profileFirstNameKey(normalizedEmail),
+      value: firstName,
+    );
+    await _storage.write(
+      key: _profileLastNameKey(normalizedEmail),
+      value: lastName,
+    );
   }
 
   Future<void> saveUserNames({
     required String firstName,
     required String lastName,
   }) async {
-    await _storage.write(key: _firstNameKey, value: firstName);
-    await _storage.write(key: _lastNameKey, value: lastName);
+    final email = await getCurrentEmail();
+    if (email == null) {
+      throw AuthException('Nie można zapisać danych bez zalogowanego konta.');
+    }
+
+    await _storage.write(key: _profileFirstNameKey(email), value: firstName);
+    await _storage.write(key: _profileLastNameKey(email), value: lastName);
   }
 
   Future<UserProfile> getUserProfile() async {
-    return UserProfile(
-      firstName: await _storage.read(key: _firstNameKey),
-      lastName: await _storage.read(key: _lastNameKey),
-      email: await _storage.read(key: _emailKey),
-    );
+    final email = await getCurrentEmail();
+    if (email == null) {
+      return const UserProfile();
+    }
+
+    final firstName = await _storage.read(key: _profileFirstNameKey(email));
+    final lastName = await _storage.read(key: _profileLastNameKey(email));
+
+    if (firstName == null && lastName == null) {
+      final legacyEmail = await _storage.read(key: _emailKey);
+      if (legacyEmail != null && _normalizeEmail(legacyEmail) == email) {
+        return UserProfile(
+          firstName: await _storage.read(key: _firstNameKey),
+          lastName: await _storage.read(key: _lastNameKey),
+          email: email,
+        );
+      }
+    }
+
+    return UserProfile(firstName: firstName, lastName: lastName, email: email);
   }
 
   Future<void> login(String email, String password) async {
@@ -87,7 +131,10 @@ class AuthService {
         data['access_token'] as String,
         data['refresh_token'] as String,
       );
-      await _storage.write(key: _emailKey, value: email);
+      await _storage.write(
+        key: _currentEmailKey,
+        value: _normalizeEmail(email),
+      );
     } else if (response.statusCode == 401) {
       throw AuthException('Niepoprawny login lub hasło.');
     } else {

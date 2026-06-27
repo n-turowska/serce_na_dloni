@@ -43,7 +43,8 @@ class PressureApiService {
       });
     }
 
-    return PressureEntry.fromJson(data as Map<String, dynamic>);
+    final entry = PressureEntry.fromJson(data as Map<String, dynamic>);
+    return createdAt == null ? entry : entry.copyWith(createdAt: createdAt);
   }
 
   Future<void> deletePressure(String id) async {

@@ -503,7 +503,6 @@ class _KontoState extends ConsumerState<Konto> {
                 Navigator.of(context).popUntil((route) => route.isFirst);
                 await ref.read(authProvider.notifier).logout();
 
-                ref.invalidate(authProvider);
                 ref.invalidate(pressureProvider);
                 ref.invalidate(userProfileProvider);
               },
