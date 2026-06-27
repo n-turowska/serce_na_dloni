@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../providers/pressure_provider.dart';
 import 'providers/auth_provider.dart';
+import 'services/auth_service.dart';
 
 class Konto extends ConsumerStatefulWidget {
   const Konto({super.key});
@@ -18,6 +19,88 @@ class Konto extends ConsumerStatefulWidget {
 class _KontoState extends ConsumerState<Konto> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
+
+  Future<void> _edytujDaneUzytkownika(UserProfile? user) async {
+    final firstNameController = TextEditingController(
+      text: user?.firstName ?? '',
+    );
+    final lastNameController = TextEditingController(
+      text: user?.lastName ?? '',
+    );
+    final formKey = GlobalKey<FormState>();
+
+    try {
+      final shouldSave = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Edytuj dane'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: firstNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Imię',
+                    border: OutlineInputBorder(),
+                  ),
+                  textInputAction: TextInputAction.next,
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Podaj imię'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: lastNameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nazwisko',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Podaj nazwisko'
+                      : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Anuluj'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.pop(ctx, true);
+                }
+              },
+              child: const Text('Zapisz'),
+            ),
+          ],
+        ),
+      );
+
+      if (shouldSave != true) return;
+
+      await ref
+          .read(authServiceProvider)
+          .saveUserNames(
+            firstName: firstNameController.text.trim(),
+            lastName: lastNameController.text.trim(),
+          );
+      ref.invalidate(userProfileProvider);
+
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Dane zostały zapisane')));
+      }
+    } finally {
+      firstNameController.dispose();
+      lastNameController.dispose();
+    }
+  }
 
   // funkcja wywołująca kalendarz
   Future<DateTime?> _wyborDaty(
@@ -339,12 +422,30 @@ class _KontoState extends ConsumerState<Konto> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      "Twoje Dane",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            "Twoje Dane",
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        profile.maybeWhen(
+                          data: (user) => IconButton(
+                            tooltip: 'Edytuj dane',
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () => _edytujDaneUzytkownika(user),
+                          ),
+                          orElse: () => IconButton(
+                            tooltip: 'Edytuj dane',
+                            icon: const Icon(Icons.edit_outlined),
+                            onPressed: () => _edytujDaneUzytkownika(null),
+                          ),
+                        ),
+                      ],
                     ),
 
                     const SizedBox(height: 12),
@@ -388,7 +489,7 @@ class _KontoState extends ConsumerState<Konto> {
             ElevatedButton.icon(
               onPressed: () => _wyborZakresu(context),
               icon: const Icon(Icons.picture_as_pdf),
-              label: const Text("Pobierz swoje dane (PDF)"),
+              label: const Text("Pobierz pomiary ciśnienia (PDF)"),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14.0),
               ),

@@ -55,6 +55,14 @@ class AuthService {
     await _storage.write(key: _emailKey, value: email);
   }
 
+  Future<void> saveUserNames({
+    required String firstName,
+    required String lastName,
+  }) async {
+    await _storage.write(key: _firstNameKey, value: firstName);
+    await _storage.write(key: _lastNameKey, value: lastName);
+  }
+
   Future<UserProfile> getUserProfile() async {
     return UserProfile(
       firstName: await _storage.read(key: _firstNameKey),
