@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -396,29 +397,29 @@ class _KontoState extends ConsumerState<Konto> {
   @override
   Widget build(BuildContext context) {
     final profile = ref.watch(userProfileProvider);
+    final wpisy = ref.watch(pressureProvider);
+    final liczbaWpisow = wpisy.length;
+    final statystykiZakresow = _PressureRangeStats.fromEntries(wpisy);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Konto"),
+        title: const Text("Konto"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
 
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
-
           children: [
             Card(
               elevation: 3,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-
               child: Padding(
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -451,6 +452,7 @@ class _KontoState extends ConsumerState<Konto> {
                     const SizedBox(height: 12),
                     const Divider(), // pozioma kreska oddzielająca
                     const SizedBox(height: 12),
+
                     profile.when(
                       data: (user) => Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -478,10 +480,40 @@ class _KontoState extends ConsumerState<Konto> {
                         style: TextStyle(fontSize: 16),
                       ),
                     ),
+
+                    const SizedBox(height: 12),
+                    const Divider(), // pozioma kreska oddzielająca
+                    const SizedBox(height: 12),
+
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
+                            'Liczba wszystkich wpisów',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Text(
+                          '$liczbaWpisow',
+                          style: const TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
+
+            const SizedBox(height: 12),
+
+            _PressureRangeStatsCard(stats: statystykiZakresow),
 
             const SizedBox(height: 12),
 
@@ -497,7 +529,7 @@ class _KontoState extends ConsumerState<Konto> {
 
             const SizedBox(height: 12),
 
-            //GUZIK WYLOGUJ
+            // GUZIK WYLOGUJ
             OutlinedButton.icon(
               onPressed: () async {
                 Navigator.of(context).popUntil((route) => route.isFirst);
@@ -514,11 +546,261 @@ class _KontoState extends ConsumerState<Konto> {
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 14.0),
                 side: const BorderSide(color: Colors.red),
-              ), // styleFrom
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+enum _PressureRange { low, normal, high }
+
+class _PressureRangeStats {
+  const _PressureRangeStats({
+    required this.low,
+    required this.normal,
+    required this.high,
+  });
+
+  final int low;
+  final int normal;
+  final int high;
+
+  int get total => low + normal + high;
+
+  factory _PressureRangeStats.fromEntries(Iterable<dynamic> entries) {
+    var low = 0;
+    var normal = 0;
+    var high = 0;
+
+    for (final entry in entries) {
+      switch (_classifyPressure(entry.systolic, entry.diastolic)) {
+        case _PressureRange.low:
+          low++;
+        case _PressureRange.normal:
+          normal++;
+        case _PressureRange.high:
+          high++;
+      }
+    }
+
+    return _PressureRangeStats(low: low, normal: normal, high: high);
+  }
+
+  static _PressureRange _classifyPressure(int systolic, int diastolic) {
+    if (systolic < 90 || diastolic < 60) {
+      return _PressureRange.low;
+    }
+    if (systolic >= 140 || diastolic >= 90) {
+      return _PressureRange.high;
+    }
+    return _PressureRange.normal;
+  }
+}
+
+class _PressureRangeStatsCard extends StatelessWidget {
+  const _PressureRangeStatsCard({required this.stats});
+
+  static const _lowColor = Color(0xFF3B82F6);
+  static const _normalColor = Color(0xFF22C55E);
+  static const _highColor = Color(0xFFEF4444);
+
+  final _PressureRangeStats stats;
+
+  @override
+  Widget build(BuildContext context) {
+    final segments = [
+      _PieSegment(color: _lowColor, value: stats.low),
+      _PieSegment(color: _normalColor, value: stats.normal),
+      _PieSegment(color: _highColor, value: stats.high),
+    ];
+
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Statystyka zakresów ciśnienia',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Podział wszystkich zapisanych pomiarów według wartości skurczowej i rozkurczowej.',
+              style: TextStyle(fontSize: 13, color: Colors.grey),
+            ),
+            const SizedBox(height: 16),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final chart = Center(
+                  child: SizedBox(
+                    width: 150,
+                    height: 150,
+                    child: CustomPaint(
+                      painter: _PressurePieChartPainter(segments, stats.total),
+                    ),
+                  ),
+                );
+
+                final legend = Column(
+                  children: [
+                    _PressureLegendRow(
+                      color: _lowColor,
+                      label: 'Za niskie',
+                      range: 'poniżej 90/60 mmHg',
+                      count: stats.low,
+                      total: stats.total,
+                    ),
+                    const SizedBox(height: 10),
+                    _PressureLegendRow(
+                      color: _normalColor,
+                      label: 'Normalne',
+                      range: '90-139 / 60-89 mmHg',
+                      count: stats.normal,
+                      total: stats.total,
+                    ),
+                    const SizedBox(height: 10),
+                    _PressureLegendRow(
+                      color: _highColor,
+                      label: 'Podwyższone',
+                      range: 'od 140/90 mmHg',
+                      count: stats.high,
+                      total: stats.total,
+                    ),
+                  ],
+                );
+
+                if (constraints.maxWidth < 360) {
+                  return Column(
+                    children: [chart, const SizedBox(height: 16), legend],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    chart,
+                    const SizedBox(width: 20),
+                    Expanded(child: legend),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PressureLegendRow extends StatelessWidget {
+  const _PressureLegendRow({
+    required this.color,
+    required this.label,
+    required this.range,
+    required this.count,
+    required this.total,
+  });
+
+  final Color color;
+  final String label;
+  final String range;
+  final int count;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final percent = total == 0 ? 0 : ((count / total) * 100).round();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          margin: const EdgeInsets.only(top: 4),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    '$percent% ($count)',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                range,
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PieSegment {
+  const _PieSegment({required this.color, required this.value});
+
+  final Color color;
+  final int value;
+}
+
+class _PressurePieChartPainter extends CustomPainter {
+  const _PressurePieChartPainter(this.segments, this.total);
+
+  final List<_PieSegment> segments;
+  final int total;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final chartRect = rect.deflate(2);
+    final paint = Paint()
+      ..style = PaintingStyle.fill
+      ..strokeCap = StrokeCap.butt;
+
+    if (total == 0) {
+      paint.color = Colors.grey.shade300;
+      canvas.drawCircle(rect.center, size.shortestSide / 2 - 2, paint);
+      return;
+    }
+
+    var startAngle = -math.pi / 2;
+    for (final segment in segments.where((segment) => segment.value > 0)) {
+      final sweepAngle = (segment.value / total) * math.pi * 2;
+      paint.color = segment.color;
+      canvas.drawArc(chartRect, startAngle, sweepAngle, true, paint);
+      startAngle += sweepAngle;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _PressurePieChartPainter oldDelegate) {
+    return oldDelegate.total != total || oldDelegate.segments != segments;
   }
 }
