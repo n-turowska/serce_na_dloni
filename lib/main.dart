@@ -9,6 +9,7 @@ import 'startowy.dart';
 import 'pomiary.dart';
 import 'konto.dart';
 import 'logowanie.dart';
+import 'przypomnienia.dart';
 import 'rejestracja.dart';
 import 'services/notification_service.dart';
 
@@ -57,6 +58,7 @@ class MyApp extends ConsumerWidget {
         '/startowy': (context) => const MyHomePage(),
         '/blog': (context) => const Blog(),
         '/pomiary': (context) => const Pomiary(),
+        '/przypomnienia': (context) => const Przypomnienia(),
         '/konto': (context) => const Konto(),
       },
     );

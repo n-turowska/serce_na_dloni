@@ -18,50 +18,6 @@ class Konto extends ConsumerStatefulWidget {
 class _KontoState extends ConsumerState<Konto> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
-  bool _remindersEnabled = false;
-  bool _isSavingReminderPreference = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadReminderPreference();
-  }
-
-  Future<void> _loadReminderPreference() async {
-    final enabled = await ref
-        .read(notificationServiceProvider)
-        .areRemindersEnabled();
-    if (!mounted) return;
-    setState(() {
-      _remindersEnabled = enabled;
-    });
-  }
-
-  Future<void> _setReminderPreference(bool enabled) async {
-    setState(() {
-      _isSavingReminderPreference = true;
-    });
-
-    final success = await ref
-        .read(notificationServiceProvider)
-        .setRemindersEnabled(enabled, entries: ref.read(pressureProvider));
-
-    if (!mounted) return;
-    setState(() {
-      _remindersEnabled = success ? enabled : _remindersEnabled;
-      _isSavingReminderPreference = false;
-    });
-
-    if (!success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Nie udało się włączyć powiadomień. Sprawdź uprawnienia aplikacji.',
-          ),
-        ),
-      );
-    }
-  }
 
   Future<void> _edytujDaneUzytkownika(UserProfile? user) async {
     final firstNameController = TextEditingController(
@@ -486,27 +442,20 @@ class _KontoState extends ConsumerState<Konto> {
 
             const SizedBox(height: 12),
 
-            _PressureRangeStatsCard(stats: statystykiZakresow),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, '/przypomnienia');
+              },
+              icon: const Icon(Icons.notifications_active_outlined),
+              label: const Text('Przypomnienia'),
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14.0),
+              ),
+            ),
 
             const SizedBox(height: 12),
 
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: SwitchListTile(
-                secondary: const Icon(Icons.notifications_active_outlined),
-                title: const Text('Przypomnienie o pomiarze'),
-                subtitle: const Text(
-                  'Powiadomienie o 18:00, jeśli danego dnia nie ma jeszcze wpisu.',
-                ),
-                value: _remindersEnabled,
-                onChanged: _isSavingReminderPreference
-                    ? null
-                    : _setReminderPreference,
-              ),
-            ),
+            _PressureRangeStatsCard(stats: statystykiZakresow),
 
             const SizedBox(height: 12),
 
@@ -538,6 +487,9 @@ class _KontoState extends ConsumerState<Konto> {
               onPressed: () async {
                 Navigator.of(context).popUntil((route) => route.isFirst);
                 await ref.read(notificationServiceProvider).cancelReminder();
+                await ref
+                    .read(notificationServiceProvider)
+                    .cancelAllMedicationReminders();
                 await ref.read(authProvider.notifier).logout();
 
                 ref.invalidate(pressureProvider);
