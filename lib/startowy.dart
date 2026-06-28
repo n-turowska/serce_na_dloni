@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'pomiary.dart';
 import '../providers/pressure_provider.dart';
+import 'services/notification_service.dart';
 
 class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key});
@@ -17,6 +18,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     super.initState();
     Future.microtask(() {
       ref.read(pressureProvider.notifier).loadPressures();
+      ref
+          .read(notificationServiceProvider)
+          .scheduleMedicationRemindersIfNeeded();
     });
   }
 

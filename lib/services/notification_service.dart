@@ -139,6 +139,11 @@ class NotificationService {
     return true;
   }
 
+  Future<void> scheduleMedicationRemindersIfNeeded() async {
+    await _rescheduleMedicationReminder(MedicationReminderPeriod.morning);
+    await _rescheduleMedicationReminder(MedicationReminderPeriod.evening);
+  }
+
   Future<void> scheduleNextReminderIfNeeded(List<PressureEntry> entries) async {
     if (kIsWeb || !await areRemindersEnabled()) return;
     await initialize();
@@ -197,9 +202,7 @@ class NotificationService {
     await cancelMedicationReminder(MedicationReminderPeriod.evening);
   }
 
-  Future<void> cancelMedicationReminder(
-    MedicationReminderPeriod period,
-  ) async {
+  Future<void> cancelMedicationReminder(MedicationReminderPeriod period) async {
     if (kIsWeb) return;
     await initialize();
     final baseId = _medicationNotificationId(period);
@@ -250,7 +253,8 @@ class NotificationService {
           android: AndroidNotificationDetails(
             'medication_reminders',
             'Przypomnienia o lekach',
-            channelDescription: 'Przypomnienia o przyjmowaniu leków na ciśnienie',
+            channelDescription:
+                'Przypomnienia o przyjmowaniu leków na ciśnienie',
             importance: Importance.high,
             priority: Priority.high,
           ),
