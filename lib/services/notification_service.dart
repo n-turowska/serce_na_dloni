@@ -201,7 +201,7 @@ class NotificationService {
         id: _reminderNotificationId + dayOffset,
         title: 'Czas na pomiar ciśnienia',
         body:
-            'Nie widzimy jeszcze dzisiejszego wpisu. Dodaj pomiar przed końcem dnia.',
+            'Regularność jest istotna. Dodaj pomiar przed końcem dnia!',
         scheduledDate: tz.TZDateTime.from(scheduledDate, tz.local),
         notificationDetails: const NotificationDetails(
           android: AndroidNotificationDetails(
@@ -274,7 +274,7 @@ class NotificationService {
       final scheduledDate = firstReminderDate.add(Duration(days: dayOffset));
       await _notifications.zonedSchedule(
         id: baseId + dayOffset,
-        title: 'Przypomnienie o lekach',
+        title: 'Czas na leki',
         body: period == MedicationReminderPeriod.morning
             ? 'Pora przyjąć poranne leki na ciśnienie.'
             : 'Pora przyjąć wieczorne leki na ciśnienie.',

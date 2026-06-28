@@ -5,7 +5,9 @@ Aplikcja na telefony z systemami Android oraz iOS służąca do notowania wynik�
 * **Zapis pomiarów ciśnienia** - zarówno w czasie rzeczywistym jak i "wstecz".
 * **Statystyki i analityka** - obliczanie oraz obrazowanie statystyk dotyczących ciśnienia.
 * **Eksport danych** - możliwość eksportu wpisów i wykresów ciśnienia do formatu PDF.
-* **Przypomnienia** - przypomnienie o wykonaniu pomiaru ciśnienia, jeśli do godziny 18:00 nie dodano wpisu.
+* **Przypomnienia** 
+*   * przypomnienie o wykonaniu pomiaru ciśnienia, jeśli do godziny 18:00 nie dodano wpisu.
+*   * przypomnienia o konieczności wzięcia leków, o godzinach wybranych przez użytkownika.
 * **Baza wiedzy** - sekcja porad dotyczących prawidłowego ciśnienia.
  
 ## W przyszłości:
