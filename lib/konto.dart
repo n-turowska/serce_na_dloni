@@ -485,7 +485,6 @@ class _KontoState extends ConsumerState<Konto> {
             // GUZIK WYLOGUJ
             OutlinedButton.icon(
               onPressed: () async {
-                Navigator.of(context).popUntil((route) => route.isFirst);
                 await ref.read(notificationServiceProvider).cancelReminder();
                 await ref
                     .read(notificationServiceProvider)
@@ -494,6 +493,12 @@ class _KontoState extends ConsumerState<Konto> {
 
                 ref.invalidate(pressureProvider);
                 ref.invalidate(userProfileProvider);
+
+                if (!context.mounted) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  '/logowanie',
+                  (route) => false,
+                );
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text(

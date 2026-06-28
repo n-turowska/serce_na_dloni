@@ -3,9 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
 
-class Logowanie extends ConsumerStatefulWidget{
-  
-    const Logowanie({super.key});
+class Logowanie extends ConsumerStatefulWidget {
+  const Logowanie({super.key});
 
   @override
   ConsumerState<Logowanie> createState() => _LogowanieState();
@@ -25,25 +24,26 @@ class _LogowanieState extends ConsumerState<Logowanie> {
   }
 
   Future<void> _login() async {
-  if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return;
 
-  setState(() => _isLoading = true);
-  try {
-    await ref.read(authProvider.notifier).login( 
-          _emailController.text.trim(),
-          _passwordController.text,
-        );
+    setState(() => _isLoading = true);
+    try {
+      await ref
+          .read(authProvider.notifier)
+          .login(_emailController.text.trim(), _passwordController.text);
 
-  } on AuthException catch (e) {
-    if (mounted) { 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message)),
-      );
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, '/startowy', (route) => false);
+    } on AuthException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
-  } finally {
-    if (mounted) setState(() => _isLoading = false);
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -63,43 +63,42 @@ class _LogowanieState extends ConsumerState<Logowanie> {
             ),
             child: Padding(
               padding: const EdgeInsets.all(24.0),
-                  child: Form(
-                    key: _formKey,
+              child: Form(
+                key: _formKey,
 
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(
-                          'Witamy w Serce na Dłoni!',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                        ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Pole LOGIN
-                  TextField(
-                    controller: _emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Email',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Witamy w Serce na Dłoni!',
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                  const SizedBox(height: 16),
+                    const SizedBox(height: 24),
 
-                  // Pole HASŁO
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: true, // ukrywa wpisywane znaki (kropki)
-                    decoration: const InputDecoration(
-                      labelText: 'Hasło',
-                      prefixIcon: Icon(Icons.lock),
-                      border: OutlineInputBorder(),
+                    // Pole LOGIN
+                    TextField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(
+                        labelText: 'Email',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
                     ),
-                    validator: (value) {
+                    const SizedBox(height: 16),
+
+                    // Pole HASŁO
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true, // ukrywa wpisywane znaki (kropki)
+                      decoration: const InputDecoration(
+                        labelText: 'Hasło',
+                        prefixIcon: Icon(Icons.lock),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Proszę podać hasło';
                         }
@@ -108,18 +107,19 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                         }
                         return null;
                       },
-                  ),
-                  const SizedBox(height: 24),
+                    ),
+                    const SizedBox(height: 24),
 
-                  _isLoading
+                    _isLoading
                         ? const Center(child: CircularProgressIndicator())
                         : FilledButton(
-                            onPressed: _login, // Wywołuje oficjalne logowanie przez API
+                            onPressed:
+                                _login, // Wywołuje oficjalne logowanie przez API
                             child: const Text('Zaloguj się'),
                           ),
 
-                  const SizedBox(height: 8),
-        
+                    const SizedBox(height: 8),
+
                     const Divider(),
                     const SizedBox(height: 8),
                     const Text(
@@ -132,19 +132,25 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                       onPressed: () {
                         Navigator.pushNamed(context, '/rejestracja');
                       },
-                      icon: const Icon(Icons.person_add, color: Color(0xFF6750A4)),
+                      icon: const Icon(
+                        Icons.person_add,
+                        color: Color(0xFF6750A4),
+                      ),
                       label: const Text(
                         'Zarejestruj się',
-                        style: TextStyle(color: Color(0xFF6750A4), fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          color: Color(0xFF6750A4),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
       ),
-    ),
     );
   }
 }
