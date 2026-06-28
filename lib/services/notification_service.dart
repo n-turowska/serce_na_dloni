@@ -7,6 +7,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../models/pressure_entry.dart';
+import 'auth_service.dart';
 
 final notificationServiceProvider = Provider<NotificationService>(
   (ref) => NotificationService.instance,
@@ -37,6 +38,7 @@ class NotificationService {
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
+  final AuthService _authService = AuthService();
 
   bool _initialized = false;
 
@@ -73,21 +75,42 @@ class NotificationService {
 
   Future<bool> areRemindersEnabled() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_enabledKey) ?? false;
+    final key = await _userScopedKey(_enabledKey);
+    if (key == null) return false;
+    return prefs.getBool(key) ?? false;
   }
 
   Future<MedicationReminderSettings> getMedicationReminderSettings() async {
     final prefs = await SharedPreferences.getInstance();
+    final morningEnabledKey = await _userScopedKey(
+      _morningMedicationEnabledKey,
+    );
+    final eveningEnabledKey = await _userScopedKey(
+      _eveningMedicationEnabledKey,
+    );
+    final morningHourKey = await _userScopedKey(_morningMedicationHourKey);
+    final morningMinuteKey = await _userScopedKey(_morningMedicationMinuteKey);
+    final eveningHourKey = await _userScopedKey(_eveningMedicationHourKey);
+    final eveningMinuteKey = await _userScopedKey(_eveningMedicationMinuteKey);
+
     return MedicationReminderSettings(
-      morningEnabled: prefs.getBool(_morningMedicationEnabledKey) ?? false,
-      eveningEnabled: prefs.getBool(_eveningMedicationEnabledKey) ?? false,
+      morningEnabled:
+          morningEnabledKey != null &&
+          (prefs.getBool(morningEnabledKey) ?? false),
+      eveningEnabled:
+          eveningEnabledKey != null &&
+          (prefs.getBool(eveningEnabledKey) ?? false),
       morningTime: ReminderTime(
-        hour: prefs.getInt(_morningMedicationHourKey) ?? 8,
-        minute: prefs.getInt(_morningMedicationMinuteKey) ?? 0,
+        hour: morningHourKey == null ? 8 : prefs.getInt(morningHourKey) ?? 8,
+        minute: morningMinuteKey == null
+            ? 0
+            : prefs.getInt(morningMinuteKey) ?? 0,
       ),
       eveningTime: ReminderTime(
-        hour: prefs.getInt(_eveningMedicationHourKey) ?? 20,
-        minute: prefs.getInt(_eveningMedicationMinuteKey) ?? 0,
+        hour: eveningHourKey == null ? 20 : prefs.getInt(eveningHourKey) ?? 20,
+        minute: eveningMinuteKey == null
+            ? 0
+            : prefs.getInt(eveningMinuteKey) ?? 0,
       ),
     );
   }
@@ -102,7 +125,9 @@ class NotificationService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_enabledKey, enabled);
+    final key = await _userScopedKey(_enabledKey);
+    if (key == null) return false;
+    await prefs.setBool(key, enabled);
 
     if (enabled) {
       await scheduleNextReminderIfNeeded(entries);
@@ -123,7 +148,9 @@ class NotificationService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_medicationEnabledKey(period), enabled);
+    final key = await _userScopedKey(_medicationEnabledKey(period));
+    if (key == null) return false;
+    await prefs.setBool(key, enabled);
     await _rescheduleMedicationReminder(period);
     return true;
   }
@@ -133,8 +160,11 @@ class NotificationService {
     ReminderTime time,
   ) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_medicationHourKey(period), time.hour);
-    await prefs.setInt(_medicationMinuteKey(period), time.minute);
+    final hourKey = await _userScopedKey(_medicationHourKey(period));
+    final minuteKey = await _userScopedKey(_medicationMinuteKey(period));
+    if (hourKey == null || minuteKey == null) return false;
+    await prefs.setInt(hourKey, time.hour);
+    await prefs.setInt(minuteKey, time.minute);
     await _rescheduleMedicationReminder(period);
     return true;
   }
@@ -330,6 +360,12 @@ class NotificationService {
       MedicationReminderPeriod.morning => _morningMedicationMinuteKey,
       MedicationReminderPeriod.evening => _eveningMedicationMinuteKey,
     };
+  }
+
+  Future<String?> _userScopedKey(String key) async {
+    final email = await _authService.getCurrentEmail();
+    if (email == null || email.isEmpty) return null;
+    return 'user_${email.trim().toLowerCase()}_$key';
   }
 }
 

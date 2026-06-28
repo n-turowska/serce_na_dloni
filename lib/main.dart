@@ -25,7 +25,7 @@ void main() async {
 
   await container.read(authProvider.notifier).checkAuth();
 
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
