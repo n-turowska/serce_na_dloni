@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/pressure_entry.dart';
 import '../data/pressure_repository.dart';
+import '../services/notification_service.dart';
 
 class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   final PressureRepository _repository;
-  PressureNotifier(this._repository) : super([]) {
+  final NotificationService _notificationService;
+
+  PressureNotifier(this._repository, this._notificationService) : super([]) {
     loadPressures();
   }
 
@@ -16,6 +19,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
     try {
       final entries = await _repository.getAllPressures();
       state = _sortNewestFirst(entries);
+      await _notificationService.scheduleNextReminderIfNeeded(state);
     } catch (e) {
       state = [];
     }
@@ -36,6 +40,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
       );
 
       state = _sortNewestFirst([savedEntry, ...state]);
+      await _notificationService.scheduleNextReminderIfNeeded(state);
     } catch (e) {
       await loadPressures();
       rethrow;
@@ -45,6 +50,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   Future<void> deletePressure(String id) async {
     await _repository.deletePressure(id);
     state = state.where((e) => e.id != id).toList();
+    await _notificationService.scheduleNextReminderIfNeeded(state);
   }
 
   Future<void> updatePressure(
@@ -66,6 +72,7 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
     state = _sortNewestFirst(
       state.map((e) => e.id == id ? updated : e).toList(),
     );
+    await _notificationService.scheduleNextReminderIfNeeded(state);
   }
 }
 
@@ -74,7 +81,8 @@ final pressureProvider =
       ref,
     ) {
       final repository = PressureRepository();
-      return PressureNotifier(repository);
+      final notificationService = ref.watch(notificationServiceProvider);
+      return PressureNotifier(repository, notificationService);
     });
 
 final pressureStatsProvider = Provider<Map<String, dynamic>>((ref) {

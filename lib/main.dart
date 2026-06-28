@@ -10,10 +10,12 @@ import 'pomiary.dart';
 import 'konto.dart';
 import 'logowanie.dart';
 import 'rejestracja.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+  await NotificationService.instance.initialize();
+
   if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
   }
@@ -22,11 +24,7 @@ void main() async {
 
   await container.read(authProvider.notifier).checkAuth();
 
-  runApp(
-    const ProviderScope(
-      child: MyApp(),
-    ),
-  );
+  runApp(const ProviderScope(child: MyApp()));
 }
 
 class MyApp extends ConsumerWidget {
@@ -35,7 +33,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
-    
+
     return MaterialApp(
       title: 'Serce_na_Dloni',
       debugShowCheckedModeBanner: false,
@@ -43,14 +41,13 @@ class MyApp extends ConsumerWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-    
-      home: switch(authState)
-      {
+
+      home: switch (authState) {
         AuthState.authenticated => const MyHomePage(),
         AuthState.unauthenticated => const Logowanie(),
         AuthState.loading => const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          ),
+          body: Center(child: CircularProgressIndicator()),
+        ),
         AuthState.initial => const _AuthCheckScreen(),
       },
 
@@ -82,12 +79,6 @@ class _AuthCheckScreenState extends ConsumerState<_AuthCheckScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
-
-

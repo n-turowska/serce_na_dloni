@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../providers/pressure_provider.dart';
 import 'providers/auth_provider.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 import 'services/pressure_pdf_service.dart';
 
 class Konto extends ConsumerStatefulWidget {
@@ -17,6 +18,50 @@ class Konto extends ConsumerStatefulWidget {
 class _KontoState extends ConsumerState<Konto> {
   DateTime? _dateFrom;
   DateTime? _dateTo;
+  bool _remindersEnabled = false;
+  bool _isSavingReminderPreference = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadReminderPreference();
+  }
+
+  Future<void> _loadReminderPreference() async {
+    final enabled = await ref
+        .read(notificationServiceProvider)
+        .areRemindersEnabled();
+    if (!mounted) return;
+    setState(() {
+      _remindersEnabled = enabled;
+    });
+  }
+
+  Future<void> _setReminderPreference(bool enabled) async {
+    setState(() {
+      _isSavingReminderPreference = true;
+    });
+
+    final success = await ref
+        .read(notificationServiceProvider)
+        .setRemindersEnabled(enabled, entries: ref.read(pressureProvider));
+
+    if (!mounted) return;
+    setState(() {
+      _remindersEnabled = success ? enabled : _remindersEnabled;
+      _isSavingReminderPreference = false;
+    });
+
+    if (!success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Nie udało się włączyć powiadomień. Sprawdź uprawnienia aplikacji.',
+          ),
+        ),
+      );
+    }
+  }
 
   Future<void> _edytujDaneUzytkownika(UserProfile? user) async {
     final firstNameController = TextEditingController(
@@ -227,7 +272,7 @@ class _KontoState extends ConsumerState<Konto> {
                   height: 48,
                   child: FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFF6750A4), // Wasz fiolet
+                      backgroundColor: const Color(0xFF6750A4),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -445,6 +490,26 @@ class _KontoState extends ConsumerState<Konto> {
 
             const SizedBox(height: 12),
 
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: SwitchListTile(
+                secondary: const Icon(Icons.notifications_active_outlined),
+                title: const Text('Przypomnienie o pomiarze'),
+                subtitle: const Text(
+                  'Powiadomienie o 18:00, jeśli danego dnia nie ma jeszcze wpisu.',
+                ),
+                value: _remindersEnabled,
+                onChanged: _isSavingReminderPreference
+                    ? null
+                    : _setReminderPreference,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
             // GUZIK POBIERZ SWOJE DANE
             ElevatedButton.icon(
               onPressed: () => _wyborZakresu(context, _PdfExportType.table),
@@ -472,6 +537,7 @@ class _KontoState extends ConsumerState<Konto> {
             OutlinedButton.icon(
               onPressed: () async {
                 Navigator.of(context).popUntil((route) => route.isFirst);
+                await ref.read(notificationServiceProvider).cancelReminder();
                 await ref.read(authProvider.notifier).logout();
 
                 ref.invalidate(pressureProvider);
