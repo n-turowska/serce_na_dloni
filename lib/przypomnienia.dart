@@ -150,9 +150,14 @@ class _PrzypomnieniaState extends ConsumerState<Przypomnienia> {
               borderRadius: BorderRadius.circular(12),
             ),
             child: SwitchListTile(
-              secondary: const Icon(Icons.monitor_heart_outlined),
-              title: const Text('Przypomnienie o pomiarze'),
-              subtitle: const Text(
+              secondary: Icon(Icons.monitor_heart_outlined, color: Colors.black),
+              title: Text('Przypomnienie o pomiarze',
+                      style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+              ),
+              subtitle: Text(
                 'Powiadomienie o 18:00, jeśli danego dnia nie ma jeszcze wpisu.',
               ),
               value: _pressureReminderEnabled,
