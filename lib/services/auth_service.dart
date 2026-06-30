@@ -28,7 +28,9 @@ class UserProfile {
 }
 
 class AuthService {
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final FlutterSecureStorage _storage;
+
+  AuthService({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _currentEmailKey = 'current_email';
