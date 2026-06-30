@@ -5,6 +5,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'providers/auth_provider.dart';
 import 'blog.dart';
+import 'admin.dart';
 import 'startowy.dart';
 import 'pomiary.dart';
 import 'konto.dart';
@@ -60,6 +61,7 @@ class MyApp extends ConsumerWidget {
         '/pomiary': (context) => const Pomiary(),
         '/przypomnienia': (context) => const Przypomnienia(),
         '/konto': (context) => const Konto(),
+        '/admin': (context) => const AdminPanel(),
       },
     );
   }
