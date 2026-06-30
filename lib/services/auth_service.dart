@@ -11,12 +11,20 @@ class AuthException implements Exception {
   String toString() => 'AuthException: $message';
 }
 
+enum Privilege { User, Admin }
+
 class UserProfile {
   final String? firstName;
   final String? lastName;
   final String? email;
+  final Privilege privilege;
 
-  const UserProfile({this.firstName, this.lastName, this.email});
+  const UserProfile({
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.privilege = Privilege.User,
+  });
 }
 
 class AuthService {
@@ -99,6 +107,8 @@ class AuthService {
       return const UserProfile();
     }
 
+    final privilege = (email == adminUsername) ? Privilege.Admin : Privilege.User;
+
     final firstName = await _storage.read(key: _profileFirstNameKey(email));
     final lastName = await _storage.read(key: _profileLastNameKey(email));
 
@@ -109,14 +119,30 @@ class AuthService {
           firstName: await _storage.read(key: _firstNameKey),
           lastName: await _storage.read(key: _lastNameKey),
           email: email,
+          privilege: privilege,
         );
       }
     }
 
-    return UserProfile(firstName: firstName, lastName: lastName, email: email);
+    return UserProfile(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      privilege: privilege,
+    );
   }
 
   Future<void> login(String email, String password) async {
+    final normalizedEmail = _normalizeEmail(email);
+    if (normalizedEmail == adminUsername && password == adminPassword) {
+      await saveTokens('admin_access_token', 'admin_refresh_token');
+      await _storage.write(key: _currentEmailKey, value: adminUsername);
+      await _storage.write(key: _emailKey, value: adminUsername);
+      await _storage.write(key: _profileFirstNameKey(adminUsername), value: 'Admin');
+      await _storage.write(key: _profileLastNameKey(adminUsername), value: 'Systemowy');
+      return;
+    }
+
     final url = Uri.parse('$apiBaseUrl/auth/login');
     final response = await http.post(
       url,

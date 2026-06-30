@@ -440,7 +440,29 @@ class _KontoState extends ConsumerState<Konto> {
               ),
             ),
 
-            const SizedBox(height: 12),
+            profile.maybeWhen(
+              data: (user) {
+                if (user.privilege == Privilege.Admin) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/admin');
+                      },
+                      icon: const Icon(Icons.admin_panel_settings),
+                      label: const Text('Panel Administratora'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14.0),
+                        backgroundColor: Colors.amber.shade800,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+              orElse: () => const SizedBox.shrink(),
+            ),
 
             ElevatedButton.icon(
               onPressed: () {
