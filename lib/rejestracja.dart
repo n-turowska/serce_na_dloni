@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
+import 'utils/emailValidator.dart';
 
 class Rejestracja extends ConsumerStatefulWidget {
   const Rejestracja({super.key});
@@ -28,6 +29,8 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
     _passwordController.dispose();
     super.dispose();
   }
+
+
 
   Future<void> _uruchomRejestracje() async {
     if (!_formKey.currentState!.validate()) return;
@@ -127,8 +130,15 @@ class _RejestracjaState extends ConsumerState<Rejestracja> {
                         prefixIcon: Icon(Icons.email),
                         border: OutlineInputBorder(),
                       ),
-                      validator: (value) =>
-                          value!.isEmpty ? 'Podaj adres email' : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Podaj adres email';
+                        }
+                        if (!isValidEmail(value)) {
+                          return 'Wprowadź poprawny adres email';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
