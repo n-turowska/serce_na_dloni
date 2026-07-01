@@ -18,7 +18,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> login(String email, String password) async {
-    state = AuthState.loading;
     try {
       await _authService.login(email, password);
       state = AuthState.authenticated;

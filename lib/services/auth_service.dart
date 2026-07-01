@@ -30,7 +30,8 @@ class UserProfile {
 class AuthService {
   final FlutterSecureStorage _storage;
 
-  AuthService({FlutterSecureStorage? storage}) : _storage = storage ?? const FlutterSecureStorage();
+  AuthService({FlutterSecureStorage? storage})
+    : _storage = storage ?? const FlutterSecureStorage();
   static const _accessTokenKey = 'access_token';
   static const _refreshTokenKey = 'refresh_token';
   static const _currentEmailKey = 'current_email';
@@ -109,7 +110,9 @@ class AuthService {
       return const UserProfile();
     }
 
-    final privilege = (email == adminUsername) ? Privilege.Admin : Privilege.User;
+    final privilege = (email == adminUsername)
+        ? Privilege.Admin
+        : Privilege.User;
 
     final firstName = await _storage.read(key: _profileFirstNameKey(email));
     final lastName = await _storage.read(key: _profileLastNameKey(email));
@@ -140,20 +143,35 @@ class AuthService {
       await saveTokens('admin_access_token', 'admin_refresh_token');
       await _storage.write(key: _currentEmailKey, value: adminUsername);
       await _storage.write(key: _emailKey, value: adminUsername);
-      await _storage.write(key: _profileFirstNameKey(adminUsername), value: 'Admin');
-      await _storage.write(key: _profileLastNameKey(adminUsername), value: 'Systemowy');
+      await _storage.write(
+        key: _profileFirstNameKey(adminUsername),
+        value: 'Admin',
+      );
+      await _storage.write(
+        key: _profileLastNameKey(adminUsername),
+        value: 'Systemowy',
+      );
       return;
     }
 
     final url = Uri.parse('$apiBaseUrl/auth/login');
-    final response = await http.post(
-      url,
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'username': email, // OAuth2 convention: email goes in 'username'
-        'password': password,
-      },
-    );
+    final http.Response response;
+    try {
+      response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: {
+              'username': email, // OAuth2 convention: email goes in 'username'
+              'password': password,
+            },
+          )
+          .timeout(const Duration(seconds: 15));
+    } catch (_) {
+      throw AuthException(
+        'Nie udało się połączyć z serwerem, spróbuj ponownie za chwilę',
+      );
+    }
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       await saveTokens(
