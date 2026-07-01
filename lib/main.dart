@@ -29,13 +29,11 @@ void main() async {
   runApp(UncontrolledProviderScope(container: container, child: const MyApp()));
 }
 
-class MyApp extends ConsumerWidget {
+class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Serce_na_Dloni',
       debugShowCheckedModeBanner: false,
@@ -44,14 +42,7 @@ class MyApp extends ConsumerWidget {
         useMaterial3: true,
       ),
 
-      home: switch (authState) {
-        AuthState.authenticated => const MyHomePage(),
-        AuthState.unauthenticated => const Logowanie(),
-        AuthState.loading => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
-        ),
-        AuthState.initial => const _AuthCheckScreen(),
-      },
+      home: const _AuthGate(),
 
       routes: {
         '/logowanie': (context) => const Logowanie(),
@@ -64,6 +55,24 @@ class MyApp extends ConsumerWidget {
         '/admin': (context) => const AdminPanel(),
       },
     );
+  }
+}
+
+class _AuthGate extends ConsumerWidget {
+  const _AuthGate();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+
+    return switch (authState) {
+      AuthState.authenticated => const MyHomePage(),
+      AuthState.unauthenticated => const Logowanie(),
+      AuthState.loading => const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      ),
+      AuthState.initial => const _AuthCheckScreen(),
+    };
   }
 }
 

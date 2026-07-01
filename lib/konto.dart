@@ -517,10 +517,7 @@ class _KontoState extends ConsumerState<Konto> {
                 ref.invalidate(userProfileProvider);
 
                 if (!context.mounted) return;
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  '/logowanie',
-                  (route) => false,
-                );
+                Navigator.of(context).popUntil((route) => route.isFirst);
               },
               icon: const Icon(Icons.logout, color: Colors.red),
               label: const Text(

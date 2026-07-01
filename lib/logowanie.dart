@@ -33,6 +33,9 @@ class _LogowanieState extends ConsumerState<Logowanie> {
       await ref
           .read(authProvider.notifier)
           .login(_emailController.text.trim(), _passwordController.text);
+
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
     } on AuthException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
