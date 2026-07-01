@@ -210,7 +210,7 @@ class AdminDashboardScreen extends ConsumerWidget {
 class _EdycjaWpisuDialog extends StatefulWidget {
   final Artykul? wpis;
 
-  const _EdycjaWpisuDialog({super.key, this.wpis});
+  const _EdycjaWpisuDialog({this.wpis});
 
   @override
   State<_EdycjaWpisuDialog> createState() => _EdycjaWpisuDialogState();
