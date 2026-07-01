@@ -6,8 +6,10 @@ import '../services/notification_service.dart';
 class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   final PressureRepository _repository;
   final NotificationService _notificationService;
+  final Ref _ref;
 
-  PressureNotifier(this._repository, this._notificationService) : super([]) {
+  PressureNotifier(this._repository, this._notificationService, this._ref)
+    : super([]) {
     loadPressures();
   }
 
@@ -16,12 +18,15 @@ class PressureNotifier extends StateNotifier<List<PressureEntry>> {
   }
 
   Future<void> loadPressures() async {
+    _ref.read(pressureLoadingProvider.notifier).state = true;
     try {
       final entries = await _repository.getAllPressures();
       state = _sortNewestFirst(entries);
       await _notificationService.scheduleNextReminderIfNeeded(state);
     } catch (e) {
       state = [];
+    } finally {
+      _ref.read(pressureLoadingProvider.notifier).state = false;
     }
   }
 
@@ -82,8 +87,10 @@ final pressureProvider =
     ) {
       final repository = PressureRepository();
       final notificationService = ref.watch(notificationServiceProvider);
-      return PressureNotifier(repository, notificationService);
+      return PressureNotifier(repository, notificationService, ref);
     });
+
+final pressureLoadingProvider = StateProvider.autoDispose<bool>((ref) => true);
 
 final pressureStatsProvider = Provider<Map<String, dynamic>>((ref) {
   final pressures = ref.watch(pressureProvider);

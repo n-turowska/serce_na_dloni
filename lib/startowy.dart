@@ -17,7 +17,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   void initState() {
     super.initState();
     Future.microtask(() {
-      ref.read(pressureProvider.notifier).loadPressures();
       ref
           .read(notificationServiceProvider)
           .scheduleMedicationRemindersIfNeeded();
@@ -62,6 +61,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     final pressures = ref.watch(pressureProvider);
+    final isLoadingPressures = ref.watch(pressureLoadingProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -69,7 +69,9 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         centerTitle: true,
       ),
-      body: pressures.isEmpty
+      body: isLoadingPressures && pressures.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : pressures.isEmpty
           ? const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
