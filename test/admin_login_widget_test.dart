@@ -63,7 +63,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            authServiceProvider.overrideWithValue(AuthService(storage: fakeStorage)),
+            authServiceProvider.overrideWithValue(
+              AuthService(storage: fakeStorage),
+            ),
           ],
           child: const MyApp(),
         ),
@@ -71,8 +73,8 @@ void main() {
 
       await tester.pumpAndSettle();
 
-      final emailFieldFinder = find.byType(TextField).first;
-      final passwordFieldFinder = find.byType(TextFormField).first;
+      final emailFieldFinder = find.widgetWithText(TextFormField, 'Email');
+      final passwordFieldFinder = find.widgetWithText(TextFormField, 'Hasło');
       final loginButtonFinder = find.byType(FilledButton);
 
       expect(emailFieldFinder, findsOneWidget);
@@ -84,15 +86,17 @@ void main() {
       await tester.pump();
 
       await tester.tap(loginButtonFinder);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Serce na Dłoni'), findsOneWidget);
 
       final kontoTabButtonFinder = find.text('Konto');
       expect(kontoTabButtonFinder, findsOneWidget);
-      
+
       await tester.tap(kontoTabButtonFinder);
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
 
       expect(find.text('Imię: Admin'), findsOneWidget);
       expect(find.text('Nazwisko: Systemowy'), findsOneWidget);
