@@ -2,6 +2,7 @@ import '../models/pressure_entry.dart';
 import '../services/auth_service.dart';
 import '../services/pressure_api_service.dart';
 import 'database_helper.dart';
+import '../config.dart';
 
 class PressureRepository {
   final DatabaseHelper _dbHelper;
@@ -26,6 +27,11 @@ class PressureRepository {
 
   Future<List<PressureEntry>> getAllPressures() async {
     final userEmail = await _getCurrentUserEmail();
+
+    if (userEmail == adminUsername) {
+      final localMaps = await _dbHelper.getPressures(userEmail: userEmail);
+      return localMaps.map((map) => PressureEntry.fromMap(map)).toList();
+    }
 
     try {
       final pressures = await _apiService.getPressures();
@@ -62,6 +68,17 @@ class PressureRepository {
   }) async {
     final userEmail = await _getCurrentUserEmail();
 
+    if (userEmail == adminUsername) {
+      final entry = PressureEntry(
+        systolic: systolic,
+        diastolic: diastolic,
+        note: note,
+        createdAt: createdAt,
+      );
+      await _dbHelper.insertPressure(entry.toMap(), userEmail: userEmail);
+      return entry;
+    }
+
     try {
       final entry = await _apiService.createPressure(
         systolic,
@@ -87,6 +104,11 @@ class PressureRepository {
   Future<void> deletePressure(String id) async {
     final userEmail = await _getCurrentUserEmail();
 
+    if (userEmail == adminUsername) {
+      await _dbHelper.deletePressure(id, userEmail: userEmail);
+      return;
+    }
+
     try {
       // Próba usunięcia z API
       await _apiService.deletePressure(id);
@@ -100,6 +122,15 @@ class PressureRepository {
 
   Future<void> updatePressure(PressureEntry entry) async {
     final userEmail = await _getCurrentUserEmail();
+
+    if (userEmail == adminUsername) {
+      await _dbHelper.updatePressure(
+        entry.id,
+        entry.toMap(),
+        userEmail: userEmail,
+      );
+      return;
+    }
 
     try {
       // Próba aktualizacji w API
