@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../config.dart';
 import '../providers/auth_provider.dart';
 import '../services/auth_service.dart';
+import '../utils/emailValidator.dart';
 
 class Logowanie extends ConsumerStatefulWidget {
   const Logowanie({super.key});
@@ -79,13 +81,27 @@ class _LogowanieState extends ConsumerState<Logowanie> {
                     const SizedBox(height: 24),
 
                     // Pole LOGIN
-                    TextField(
+                    TextFormField(
                       controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
                         labelText: 'Email',
                         prefixIcon: Icon(Icons.person),
                         border: OutlineInputBorder(),
                       ),
+                      validator: (value) {
+                        final email = value?.trim() ?? '';
+                        if (email.isEmpty) {
+                          return 'Proszę podać email';
+                        }
+                        if (email.toLowerCase() == adminUsername) {
+                          return null;
+                        }
+                        if (!isValidEmail(email)) {
+                          return 'Wprowadź poprawny adres email';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
 
