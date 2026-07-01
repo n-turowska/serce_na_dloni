@@ -15,4 +15,4 @@ Aplikcja na telefony z systemami Android oraz iOS służąca do notowania wynik�
 * **Wersja Premium** - możliwość włączenia "trybu gry", w którym za dodawanie wpisów zbiera się punkty.
 
 ## O projekcie
-Aplikacja Serce na Dłoni będzie projektowana przy użyciu Flutter oraz języka Dart w Android Studio. Będzie testowana w wirtualnym środowisku oraz na telefonach (Samsung Galaxy A35 i Iphone 13).
+Aplikacja Serce na Dłoni będzie projektowana przy użyciu Flutter oraz języka Dart w Visual Studio Code. Będzie testowana w wirtualnym środowisku oraz na telefonie (Samsung Galaxy A35).
